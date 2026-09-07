@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import ExplainPanel from "@/components/ExplainPanel";
 import type { GraphEdge, GraphNode } from "@/lib/path";
 
 interface Question {
@@ -8,6 +9,7 @@ interface Question {
   conceptId: string;
   prompt: string;
   options: { id: string; text: string }[];
+  reason: string;
 }
 
 interface Graph {
@@ -63,8 +65,9 @@ export default function McqBattle({ conceptId, onComplete }: McqBattleProps) {
           <p className="text-white/60">Loading question…</p>
         ) : !result ? (
           <>
-            <p className="mb-4 text-xs uppercase tracking-wide text-white/40">MCQ Battle</p>
-            <h2 className="mb-6 text-lg font-medium">{question.prompt}</h2>
+            <p className="mb-1 text-xs uppercase tracking-wide text-white/40">MCQ Battle</p>
+            <h2 className="mb-4 text-lg font-medium">{question.prompt}</h2>
+            <ExplainPanel reason={question.reason} />
             <div className="flex flex-col gap-2">
               {question.options.map((option) => (
                 <button

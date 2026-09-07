@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { getContent } from "@/lib/content";
 import { recordAnswer, selectQuestion } from "@/lib/diagnosis";
-import { getUserGraph } from "@/lib/path";
+import { getConceptStatus, getUserGraph } from "@/lib/path";
+import { explainChallenge } from "@/lib/scheduler";
 import { DEMO_USER_ID } from "@/lib/user";
 
 export async function GET(request: Request) {
@@ -9,7 +10,16 @@ export async function GET(request: Request) {
   if (!conceptId) {
     return NextResponse.json({ error: "conceptId query param is required" }, { status: 400 });
   }
-  return NextResponse.json(selectQuestion(DEMO_USER_ID, conceptId));
+
+  const concept = getContent().concepts.find((c) => c.id === conceptId);
+  if (!concept) {
+    return NextResponse.json({ error: "Unknown concept" }, { status: 404 });
+  }
+
+  const question = selectQuestion(DEMO_USER_ID, conceptId);
+  const status = getConceptStatus(DEMO_USER_ID, conceptId);
+  const reason = explainChallenge(conceptId, concept.name, status.mastery, status.retrievability).reason;
+  return NextResponse.json({ ...question, reason });
 }
 
 export async function POST(request: Request) {

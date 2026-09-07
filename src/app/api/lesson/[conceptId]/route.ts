@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getContent } from "@/lib/content";
 import { markLearned } from "@/lib/path";
+import { explainLesson } from "@/lib/scheduler";
 import { DEMO_USER_ID } from "@/lib/user";
 
 export async function GET(_request: Request, { params }: { params: { conceptId: string } }) {
@@ -23,5 +24,6 @@ export async function GET(_request: Request, { params }: { params: { conceptId: 
     workedExample: concept.lesson.workedExample,
     misconceptionWarning: concept.lesson.misconceptionWarning,
     misconceptions,
+    reason: explainLesson(concept.id, concept.name).reason,
   });
 }

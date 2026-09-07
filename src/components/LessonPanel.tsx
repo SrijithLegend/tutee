@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import ExplainPanel from "@/components/ExplainPanel";
 
 interface Lesson {
   id: string;
@@ -9,6 +10,7 @@ interface Lesson {
   workedExample: { problem: string; steps: string[] };
   misconceptionWarning: string;
   misconceptions: { id: string; name: string }[];
+  reason: string;
 }
 
 interface LessonPanelProps {
@@ -35,6 +37,8 @@ export default function LessonPanel({ conceptId, onClose }: LessonPanelProps) {
           <>
             <p className="mb-1 text-xs uppercase tracking-wide text-white/40">Lesson</p>
             <h2 className="mb-4 text-lg font-medium">{lesson.name}</h2>
+
+            <ExplainPanel reason={lesson.reason} />
 
             <p className="mb-4 text-sm leading-relaxed text-white/80">{lesson.explanation}</p>
 

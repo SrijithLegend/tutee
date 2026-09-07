@@ -78,6 +78,12 @@ export function markLearned(userId: string, conceptId: string): void {
   upsertLearnedStmt.run(userId, conceptId, existing?.mastery ?? 0);
 }
 
+/** Current mastery and live retrievability for one concept, e.g. for explaining why a challenge was served. */
+export function getConceptStatus(userId: string, conceptId: string): { mastery: number; retrievability: number } {
+  const row = getProgressRowStmt.get(userId, conceptId) as { mastery: number } | undefined;
+  return { mastery: row?.mastery ?? 0, retrievability: getRetrievability(userId, conceptId) };
+}
+
 /** Assembles the graph a user actually sees: base concepts plus any remedial nodes injected for them. */
 export function getUserGraph(userId: string): UserGraph {
   const content = getContent();
