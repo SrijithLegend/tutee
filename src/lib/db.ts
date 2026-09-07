@@ -56,4 +56,13 @@ db.exec(`
   );
 `);
 
+const USER_TABLES = ["fsrs_cards", "concept_progress", "attempts", "injected_nodes", "clock_offset"];
+
+/** Wipes a user's state back to zero across every user-state table. Content is never touched. */
+export function resetUser(userId: string): void {
+  for (const table of USER_TABLES) {
+    db.prepare(`DELETE FROM ${table} WHERE user_id = ?`).run(userId);
+  }
+}
+
 export default db;
