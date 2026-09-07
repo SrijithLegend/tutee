@@ -85,7 +85,7 @@ export default function ConceptGraph({ nodes, edges, onNodeClick }: ConceptGraph
   };
 
   return (
-    <div ref={containerRef} className="w-full h-full">
+    <div ref={containerRef} className="absolute inset-0">
       <ForceGraph2D
         graphData={graphData}
         width={size.width}
@@ -93,6 +93,14 @@ export default function ConceptGraph({ nodes, edges, onNodeClick }: ConceptGraph
         backgroundColor="#0B0E14"
         nodeId="id"
         nodeRelSize={4}
+        nodeVal={(node) => {
+          // nodeCanvasObjectMode="replace" only swaps the *visible* draw — the invisible
+          // hit-detection layer still sizes itself from nodeVal/nodeRelSize, so this must
+          // stay in sync with the radius drawn in nodeCanvasObject below or clicks miss.
+          const n = node as unknown as GraphNode;
+          const radius = 6 + n.mastery * 5;
+          return (radius / 4) ** 2;
+        }}
         d3AlphaDecay={0.02}
         d3VelocityDecay={0.3}
         nodeCanvasObjectMode={() => "replace"}

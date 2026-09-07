@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import ConceptGraph from "@/components/ConceptGraph";
 import DiagnosticQuiz from "@/components/games/DiagnosticQuiz";
+import LessonPanel from "@/components/LessonPanel";
 import type { GraphEdge, GraphNode } from "@/lib/path";
 
 interface Graph {
@@ -12,14 +13,28 @@ interface Graph {
 
 export default function Home() {
   const [graph, setGraph] = useState<Graph | null>(null);
+  const [lessonConceptId, setLessonConceptId] = useState<string | null>(null);
 
-  useEffect(() => {
+  function refetchGraph() {
     fetch("/api/graph")
       .then((r) => r.json())
       .then(setGraph);
-  }, []);
+  }
+
+  useEffect(refetchGraph, []);
 
   const needsDiagnostic = graph != null && graph.nodes.every((n) => n.retrievability === 0);
+
+  function handleNodeClick(node: GraphNode) {
+    if (node.state === "learn") {
+      setLessonConceptId(node.id);
+    }
+  }
+
+  function closeLesson() {
+    setLessonConceptId(null);
+    refetchGraph();
+  }
 
   return (
     <div className="flex flex-col flex-1">
@@ -30,8 +45,11 @@ export default function Home() {
       <main className="relative flex-1">
         {graph ? (
           <>
-            <ConceptGraph nodes={graph.nodes} edges={graph.edges} />
+            <ConceptGraph nodes={graph.nodes} edges={graph.edges} onNodeClick={handleNodeClick} />
             {needsDiagnostic && <DiagnosticQuiz onComplete={setGraph} />}
+            {!needsDiagnostic && lessonConceptId && (
+              <LessonPanel conceptId={lessonConceptId} onClose={closeLesson} />
+            )}
           </>
         ) : (
           <p className="p-6 text-white/40">Loading graph…</p>

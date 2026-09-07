@@ -42,6 +42,21 @@ const getInjectedStmt = db.prepare(
   "SELECT concept_id FROM injected_nodes WHERE user_id = ?"
 );
 
+const getProgressRowStmt = db.prepare(
+  "SELECT learned, mastery FROM concept_progress WHERE user_id = ? AND concept_id = ?"
+);
+
+const upsertLearnedStmt = db.prepare(`
+  INSERT INTO concept_progress (user_id, concept_id, learned, mastery) VALUES (?, ?, 1, ?)
+  ON CONFLICT(user_id, concept_id) DO UPDATE SET learned = 1
+`);
+
+/** Marks a concept's micro-lesson as seen. Idempotent; leaves mastery untouched if already tracked. */
+export function markLearned(userId: string, conceptId: string): void {
+  const existing = getProgressRowStmt.get(userId, conceptId) as { mastery: number } | undefined;
+  upsertLearnedStmt.run(userId, conceptId, existing?.mastery ?? 0);
+}
+
 /** Assembles the graph a user actually sees: base concepts plus any remedial nodes injected for them. */
 export function getUserGraph(userId: string): UserGraph {
   const content = getContent();
