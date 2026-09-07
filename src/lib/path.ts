@@ -1,6 +1,7 @@
 import db from "./db";
+import { now } from "./clock";
 import { getContent } from "./content";
-import { getRetrievability } from "./memory";
+import { getRetrievability, gradeAnswer, Rating } from "./memory";
 import type { Concept } from "@/types/content";
 
 export type ConceptState = "locked" | "learn" | "practice" | "mastered";
@@ -39,8 +40,28 @@ const getProgressStmt = db.prepare(
 );
 
 const getInjectedStmt = db.prepare(
-  "SELECT concept_id FROM injected_nodes WHERE user_id = ?"
+  "SELECT concept_id, triggered_by FROM injected_nodes WHERE user_id = ?"
 );
+
+const isInjectedStmt = db.prepare(
+  "SELECT 1 FROM injected_nodes WHERE user_id = ? AND concept_id = ?"
+);
+
+const insertInjectedStmt = db.prepare(
+  "INSERT INTO injected_nodes (user_id, concept_id, triggered_by, created_at) VALUES (?, ?, ?, ?)"
+);
+
+/** Injects a misconception's remedial concept into the user's graph. No-op if already injected or the misconception has no remedy. */
+export function injectRemedialNode(userId: string, misconceptionId: string): boolean {
+  const misconception = getContent().misconceptions.find((m) => m.id === misconceptionId);
+  if (!misconception?.remedialConceptId) return false;
+
+  if (isInjectedStmt.get(userId, misconception.remedialConceptId)) return false;
+
+  insertInjectedStmt.run(userId, misconception.remedialConceptId, misconceptionId, now(userId).toISOString());
+  gradeAnswer(userId, misconception.remedialConceptId, Rating.Good); // baseline FSRS card so it renders with a visible glow
+  return true;
+}
 
 const getProgressRowStmt = db.prepare(
   "SELECT learned, mastery FROM concept_progress WHERE user_id = ? AND concept_id = ?"
@@ -66,9 +87,15 @@ export function getUserGraph(userId: string): UserGraph {
     progress.set(row.concept_id, { learned: row.learned === 1, mastery: row.mastery });
   }
 
-  const injectedIds = new Set(
-    (getInjectedStmt.all(userId) as { concept_id: string }[]).map((r) => r.concept_id)
-  );
+  const injectedRows = getInjectedStmt.all(userId) as { concept_id: string; triggered_by: string }[];
+  const injectedIds = new Set(injectedRows.map((r) => r.concept_id));
+
+  // The remedial node sits between the failing concept and its prerequisite(s): failingConceptId -> remedialConceptId.
+  const remedialForFailingConcept = new Map<string, string>();
+  for (const row of injectedRows) {
+    const misconception = content.misconceptions.find((m) => m.id === row.triggered_by);
+    if (misconception) remedialForFailingConcept.set(misconception.conceptId, row.concept_id);
+  }
 
   const visibleConcepts = content.concepts.filter(
     (c) => !c.remedialOnly || injectedIds.has(c.id)
@@ -100,9 +127,19 @@ export function getUserGraph(userId: string): UserGraph {
 
   const edges: GraphEdge[] = [];
   for (const c of visibleConcepts) {
+    const remedialId = remedialForFailingConcept.get(c.id);
+    const routeThroughRemedial = remedialId && visibleIds.has(remedialId);
+
     for (const prereqId of c.prerequisites) {
       if (!visibleIds.has(prereqId)) continue;
-      edges.push({ source: prereqId, target: c.id, unlocked: isUnlocked(c) });
+      edges.push({
+        source: prereqId,
+        target: routeThroughRemedial ? remedialId : c.id,
+        unlocked: isUnlocked(c),
+      });
+    }
+    if (routeThroughRemedial) {
+      edges.push({ source: remedialId, target: c.id, unlocked: isUnlocked(c) });
     }
   }
 

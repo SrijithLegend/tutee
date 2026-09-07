@@ -2,6 +2,7 @@ import db from "./db";
 import { now } from "./clock";
 import { getContent } from "./content";
 import { gradeAnswer, Rating, type Grade } from "./memory";
+import { injectRemedialNode } from "./path";
 import type { McqQuestion } from "@/types/content";
 
 /** Deterministic sample spanning the DAG (roots + mid-tier), reused every diagnostic run for demo reliability. */
@@ -10,6 +11,20 @@ export const DIAGNOSTIC_QUESTION_IDS = ["q-iv-001", "q-dr-001", "q-clt-001", "q-
 export interface AnswerResult {
   correct: boolean;
   misconceptionId: string | null;
+  /** Strikes on this misconception within the user's last 20 attempts. Null when the answer was correct. */
+  strikeCount: number | null;
+  /** True if this answer was the 3rd strike and a remedial node was just injected. */
+  injected: boolean;
+}
+
+const recentAttemptsStmt = db.prepare(
+  "SELECT misconception_id FROM attempts WHERE user_id = ? ORDER BY id DESC LIMIT 20"
+);
+
+/** How many of the user's last 20 attempts (any concept) were tagged with this misconception. */
+export function countRecentStrikes(userId: string, misconceptionId: string): number {
+  const rows = recentAttemptsStmt.all(userId) as { misconception_id: string | null }[];
+  return rows.filter((r) => r.misconception_id === misconceptionId).length;
 }
 
 interface ProgressRow {
@@ -82,7 +97,13 @@ export function recordAnswer(
 
   gradeAnswer(userId, question.conceptId, rating);
 
-  return { correct, misconceptionId: option.misconceptionId };
+  if (correct || !option.misconceptionId) {
+    return { correct, misconceptionId: option.misconceptionId, strikeCount: null, injected: false };
+  }
+
+  const strikeCount = countRecentStrikes(userId, option.misconceptionId);
+  const injected = strikeCount >= 3 && injectRemedialNode(userId, option.misconceptionId);
+  return { correct, misconceptionId: option.misconceptionId, strikeCount, injected };
 }
 
 export interface PublicQuestion {
