@@ -14,6 +14,8 @@ export interface Concept {
   name: string;
   prerequisites: string[];
   lesson: Lesson;
+  /** True for a concept that only appears in a user's graph once injected as a remedial node. */
+  remedialOnly?: boolean;
 }
 
 export interface Misconception {

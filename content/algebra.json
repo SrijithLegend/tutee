@@ -169,6 +169,59 @@
         },
         "misconceptionWarning": "Students often forget to flip the inequality sign when dividing by a negative number."
       }
+    },
+    {
+      "id": "distributive-recap",
+      "name": "Distributing carefully (recap)",
+      "prerequisites": [],
+      "remedialOnly": true,
+      "lesson": {
+        "explanation": "This is a quick patch for one thing: when you distribute a number across parentheses, it must multiply EVERY term inside, not just the first one — and its sign carries through to each term too. Re-do the distribution slowly, term by term, before moving on.",
+        "workedExample": {
+          "problem": "2(x - 3)",
+          "steps": [
+            "Multiply 2 by x: 2x",
+            "Multiply 2 by -3: -6",
+            "Combine: 2x - 6"
+          ]
+        },
+        "misconceptionWarning": "If you catch yourself distributing to only one term, stop and multiply the second term separately before combining anything."
+      }
+    },
+    {
+      "id": "balance-both-sides-recap",
+      "name": "Keeping the equation balanced (recap)",
+      "prerequisites": [],
+      "remedialOnly": true,
+      "lesson": {
+        "explanation": "This is a quick patch for one thing: an equation is a balance, so any operation you apply has to happen to BOTH sides, and a term that crosses the equals sign flips its sign. Re-check that both sides received the same operation before you move on.",
+        "workedExample": {
+          "problem": "x + 4 = 10",
+          "steps": [
+            "Subtract 4 from the left AND the right: x + 4 - 4 = 10 - 4",
+            "Simplify: x = 6"
+          ]
+        },
+        "misconceptionWarning": "If you changed one side but not the other, or moved a term without flipping its sign, that's the exact gap this patches."
+      }
+    },
+    {
+      "id": "slope-recap",
+      "name": "Reading slope correctly (recap)",
+      "prerequisites": [],
+      "remedialOnly": true,
+      "lesson": {
+        "explanation": "This is a quick patch for one thing: slope is rise OVER run — vertical change first, then horizontal — and a negative slope means the line goes down as x increases. Re-check which direction you moved before you plot the next point.",
+        "workedExample": {
+          "problem": "For y = -2x + 3, from (0,3) find the next point",
+          "steps": [
+            "Slope is -2, i.e. -2/1",
+            "Rise is -2 (down 2), run is 1 (right 1)",
+            "Next point: (1, 1)"
+          ]
+        },
+        "misconceptionWarning": "If you moved right first or ignored the negative sign, that's the exact gap this patches."
+      }
     }
   ],
 
@@ -181,35 +234,35 @@
     { "id": "mc-dr-negative-distribute", "conceptId": "distributive-rule", "name": "Mishandles a negative sign when distributing", "microExplanation": "When the term outside is negative, it flips the sign of every term inside. -2(x - 5) becomes -2x + 10, not -2x - 10.", "remedialConceptId": null },
     { "id": "mc-dr-add-instead-multiply", "conceptId": "distributive-rule", "name": "Adds the outside term instead of multiplying", "microExplanation": "The number next to parentheses multiplies what's inside — there's no operation symbol because multiplication is implied. 3(x + 4) is 3 times (x + 4), not 3 plus (x + 4).", "remedialConceptId": null },
 
-    { "id": "mc-add-unlike-terms", "conceptId": "combining-like-terms", "name": "Adds unlike terms together", "microExplanation": "3x and 5 aren't the same kind of quantity — one is 'x groups' and one is a plain number. You can only combine terms that share the same variable part.", "remedialConceptId": "distributive-rule" },
+    { "id": "mc-add-unlike-terms", "conceptId": "combining-like-terms", "name": "Adds unlike terms together", "microExplanation": "3x and 5 aren't the same kind of quantity — one is 'x groups' and one is a plain number. You can only combine terms that share the same variable part.", "remedialConceptId": "distributive-recap" },
     { "id": "mc-sign-error", "conceptId": "combining-like-terms", "name": "Drops or flips a sign when combining", "microExplanation": "The sign in front of a term belongs to that term. In 5 - 1, the constant is -1 being combined with 5, not both treated as positive.", "remedialConceptId": null },
     { "id": "mc-coefficient-slip", "conceptId": "combining-like-terms", "name": "Miscounts the coefficient when combining", "microExplanation": "3x + 2x means 3 groups of x plus 2 groups of x — that's 5 groups of x, i.e. 5x. Recount the groups instead of guessing.", "remedialConceptId": null },
 
     { "id": "mc-ose-wrong-op", "conceptId": "one-step-equations", "name": "Uses addition or subtraction to undo multiplication", "microExplanation": "5x means 5 times x. To undo multiplication, divide both sides by 5 — subtracting 5 doesn't cancel a coefficient.", "remedialConceptId": null },
-    { "id": "mc-ose-one-side", "conceptId": "one-step-equations", "name": "Applies the inverse operation to only one side", "microExplanation": "Dividing only one side breaks the equality. Whatever you do to isolate x must happen to both sides.", "remedialConceptId": "isolating-variables" },
+    { "id": "mc-ose-one-side", "conceptId": "one-step-equations", "name": "Applies the inverse operation to only one side", "microExplanation": "Dividing only one side breaks the equality. Whatever you do to isolate x must happen to both sides.", "remedialConceptId": "balance-both-sides-recap" },
     { "id": "mc-ose-sign-flip", "conceptId": "one-step-equations", "name": "Loses the sign when dividing by a negative", "microExplanation": "Dividing by a negative number flips the sign of the result. 12 ÷ (-3) = -4, not 4.", "remedialConceptId": null },
 
-    { "id": "mc-tse-wrong-order", "conceptId": "two-step-equations", "name": "Divides by the coefficient before removing the constant", "microExplanation": "Undo addition or subtraction first, then division — dividing the whole equation by the coefficient before removing the constant makes the arithmetic messier and easy to botch.", "remedialConceptId": "isolating-variables" },
+    { "id": "mc-tse-wrong-order", "conceptId": "two-step-equations", "name": "Divides by the coefficient before removing the constant", "microExplanation": "Undo addition or subtraction first, then division — dividing the whole equation by the coefficient before removing the constant makes the arithmetic messier and easy to botch.", "remedialConceptId": "balance-both-sides-recap" },
     { "id": "mc-tse-add-not-subtract", "conceptId": "two-step-equations", "name": "Adds the constant instead of subtracting it", "microExplanation": "The constant is added to the variable term, so to undo it you subtract — adding it again moves further from the answer, not closer.", "remedialConceptId": null },
     { "id": "mc-tse-coefficient-forgot", "conceptId": "two-step-equations", "name": "Forgets to divide by the coefficient at the end", "microExplanation": "Isolating the variable TERM (like 2x) isn't the same as isolating the variable itself — you still need to divide by the coefficient.", "remedialConceptId": null },
 
-    { "id": "mc-vbs-sign-drop", "conceptId": "variables-on-both-sides", "name": "Doesn't flip the sign when moving a variable term across", "microExplanation": "A term crossing the equals sign has its sign flipped — moving a variable term without subtracting it on both sides breaks the balance.", "remedialConceptId": "isolating-variables" },
+    { "id": "mc-vbs-sign-drop", "conceptId": "variables-on-both-sides", "name": "Doesn't flip the sign when moving a variable term across", "microExplanation": "A term crossing the equals sign has its sign flipped — moving a variable term without subtracting it on both sides breaks the balance.", "remedialConceptId": "balance-both-sides-recap" },
     { "id": "mc-vbs-add-not-subtract-constant", "conceptId": "variables-on-both-sides", "name": "Adds the constant instead of subtracting it", "microExplanation": "Once the variable terms are combined, the leftover constant is still added to the variable term — you undo it by subtracting, not adding.", "remedialConceptId": null },
     { "id": "mc-vbs-coefficient-forgot", "conceptId": "variables-on-both-sides", "name": "Forgets to divide by the final coefficient", "microExplanation": "Combining the variable terms only gets you to Nx = M — you still need to divide by N to find x.", "remedialConceptId": null },
 
-    { "id": "mc-ewd-partial-distribute", "conceptId": "equations-with-distribution", "name": "Distributes to only the first term inside the parentheses", "microExplanation": "The outside number multiplies EVERY term inside the parentheses. Skipping the second term leaves part of the equation undistributed.", "remedialConceptId": "distributive-rule" },
+    { "id": "mc-ewd-partial-distribute", "conceptId": "equations-with-distribution", "name": "Distributes to only the first term inside the parentheses", "microExplanation": "The outside number multiplies EVERY term inside the parentheses. Skipping the second term leaves part of the equation undistributed.", "remedialConceptId": "distributive-recap" },
     { "id": "mc-ewd-skip-distribute", "conceptId": "equations-with-distribution", "name": "Ignores the outside coefficient entirely", "microExplanation": "3(x + 2) = 15 is not the same equation as x + 2 = 15 — the 3 must be distributed before you can isolate x.", "remedialConceptId": null },
     { "id": "mc-ewd-coefficient-forgot", "conceptId": "equations-with-distribution", "name": "Forgets to divide by the coefficient at the end", "microExplanation": "After distributing and combining, you still have a coefficient on x — divide it out to finish isolating the variable.", "remedialConceptId": null },
 
     { "id": "mc-sif-swap", "conceptId": "slope-intercept-form", "name": "Swaps the slope and y-intercept", "microExplanation": "In y = mx + b, m (attached to x) is the slope and b (alone) is the y-intercept — don't mix up which one is which.", "remedialConceptId": null },
-    { "id": "mc-sif-sign-drop", "conceptId": "slope-intercept-form", "name": "Forgets to flip the sign when moving a term across the equals sign", "microExplanation": "When a term moves from one side to the other, it becomes negative — the sign flips because you subtracted it from both sides.", "remedialConceptId": "isolating-variables" },
+    { "id": "mc-sif-sign-drop", "conceptId": "slope-intercept-form", "name": "Forgets to flip the sign when moving a term across the equals sign", "microExplanation": "When a term moves from one side to the other, it becomes negative — the sign flips because you subtracted it from both sides.", "remedialConceptId": "balance-both-sides-recap" },
     { "id": "mc-sif-drop-coefficient", "conceptId": "slope-intercept-form", "name": "Drops the coefficient in front of x when identifying slope", "microExplanation": "The slope is the ENTIRE coefficient in front of x, sign included — not just the x by itself.", "remedialConceptId": null },
 
     { "id": "mc-gle-axis-swap", "conceptId": "graphing-linear-equations", "name": "Plots the y-intercept on the x-axis instead of the y-axis", "microExplanation": "In y = mx + b, b is a y-value — the point (0, b), not (b, 0). It belongs on the vertical axis.", "remedialConceptId": null },
-    { "id": "mc-gle-slope-invert", "conceptId": "graphing-linear-equations", "name": "Uses the slope as run over rise instead of rise over run", "microExplanation": "Slope is rise OVER run — vertical change first, then horizontal. Flipping the fraction sends you in the wrong direction.", "remedialConceptId": "slope-intercept-form" },
+    { "id": "mc-gle-slope-invert", "conceptId": "graphing-linear-equations", "name": "Uses the slope as run over rise instead of rise over run", "microExplanation": "Slope is rise OVER run — vertical change first, then horizontal. Flipping the fraction sends you in the wrong direction.", "remedialConceptId": "slope-recap" },
     { "id": "mc-gle-sign-drop", "conceptId": "graphing-linear-equations", "name": "Ignores the sign of a negative slope", "microExplanation": "A negative slope means the line goes DOWN as x increases — dropping the negative sign sends the second point the wrong way.", "remedialConceptId": null },
 
-    { "id": "mc-li-no-flip", "conceptId": "linear-inequalities", "name": "Forgets to flip the inequality sign when dividing by a negative", "microExplanation": "Dividing both sides by a negative number reverses which side is bigger — the inequality sign must flip to stay true.", "remedialConceptId": "isolating-variables" },
+    { "id": "mc-li-no-flip", "conceptId": "linear-inequalities", "name": "Forgets to flip the inequality sign when dividing by a negative", "microExplanation": "Dividing both sides by a negative number reverses which side is bigger — the inequality sign must flip to stay true.", "remedialConceptId": "balance-both-sides-recap" },
     { "id": "mc-li-boundary-error", "conceptId": "linear-inequalities", "name": "Changes a strict inequality to a non-strict one, or vice versa", "microExplanation": "The original inequality was strict, with no 'or equal to' — the solution must stay strict too.", "remedialConceptId": null },
     { "id": "mc-li-arithmetic-slip", "conceptId": "linear-inequalities", "name": "Makes an arithmetic slip on the constant term", "microExplanation": "Double-check the basic subtraction step before worrying about the inequality direction — an early arithmetic slip carries through the rest of the solution.", "remedialConceptId": null }
   ],
