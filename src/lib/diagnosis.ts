@@ -85,25 +85,46 @@ export function recordAnswer(
   return { correct, misconceptionId: option.misconceptionId };
 }
 
-export interface DiagnosticQuestionView {
+export interface PublicQuestion {
   id: string;
   conceptId: string;
   prompt: string;
   options: { id: string; text: string }[];
 }
 
+/** Strips the answer key (correct/misconceptionId) before a question goes to the client. */
+function toPublicQuestion(q: McqQuestion): PublicQuestion {
+  return {
+    id: q.id,
+    conceptId: q.conceptId,
+    prompt: q.prompt,
+    options: q.options.map((o) => ({ id: o.id, text: o.text })),
+  };
+}
+
 /** The 5 sampled questions, with correct/misconceptionId stripped before sending to the client. */
-export function getDiagnosticQuestions(): DiagnosticQuestionView[] {
+export function getDiagnosticQuestions(): PublicQuestion[] {
   const content = getContent();
-  return DIAGNOSTIC_QUESTION_IDS.map((id) => {
-    const q = content.questions.find((q) => q.id === id) as McqQuestion;
-    return {
-      id: q.id,
-      conceptId: q.conceptId,
-      prompt: q.prompt,
-      options: q.options.map((o) => ({ id: o.id, text: o.text })),
-    };
-  });
+  return DIAGNOSTIC_QUESTION_IDS.map((id) => toPublicQuestion(content.questions.find((q) => q.id === id) as McqQuestion));
+}
+
+const seenQuestionIdsStmt = db.prepare(
+  "SELECT DISTINCT question_id FROM attempts WHERE user_id = ? AND concept_id = ?"
+);
+
+/** Picks the next question for a concept: the first one this user hasn't attempted yet, cycling back once all have been seen. */
+export function selectQuestion(userId: string, conceptId: string): PublicQuestion {
+  const content = getContent();
+  const candidates = content.questions.filter(
+    (q): q is McqQuestion => q.gameType === "mcq" && q.conceptId === conceptId
+  );
+  if (candidates.length === 0) throw new Error(`No MCQ questions for concept "${conceptId}"`);
+
+  const seenIds = new Set(
+    (seenQuestionIdsStmt.all(userId, conceptId) as { question_id: string }[]).map((r) => r.question_id)
+  );
+  const unseen = candidates.find((q) => !seenIds.has(q.id));
+  return toPublicQuestion(unseen ?? candidates[0]);
 }
 
 export interface DiagnosticAnswer {

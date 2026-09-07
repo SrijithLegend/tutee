@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import ConceptGraph from "@/components/ConceptGraph";
 import DiagnosticQuiz from "@/components/games/DiagnosticQuiz";
+import McqBattle from "@/components/games/McqBattle";
 import LessonPanel from "@/components/LessonPanel";
 import type { GraphEdge, GraphNode } from "@/lib/path";
 
@@ -14,6 +15,7 @@ interface Graph {
 export default function Home() {
   const [graph, setGraph] = useState<Graph | null>(null);
   const [lessonConceptId, setLessonConceptId] = useState<string | null>(null);
+  const [battleConceptId, setBattleConceptId] = useState<string | null>(null);
 
   function refetchGraph() {
     fetch("/api/graph")
@@ -28,12 +30,19 @@ export default function Home() {
   function handleNodeClick(node: GraphNode) {
     if (node.state === "learn") {
       setLessonConceptId(node.id);
+    } else if (node.state === "practice" || node.state === "mastered") {
+      setBattleConceptId(node.id);
     }
   }
 
   function closeLesson() {
     setLessonConceptId(null);
     refetchGraph();
+  }
+
+  function closeBattle(updatedGraph: Graph) {
+    setBattleConceptId(null);
+    setGraph(updatedGraph);
   }
 
   return (
@@ -49,6 +58,9 @@ export default function Home() {
             {needsDiagnostic && <DiagnosticQuiz onComplete={setGraph} />}
             {!needsDiagnostic && lessonConceptId && (
               <LessonPanel conceptId={lessonConceptId} onClose={closeLesson} />
+            )}
+            {!needsDiagnostic && !lessonConceptId && battleConceptId && (
+              <McqBattle conceptId={battleConceptId} onComplete={closeBattle} />
             )}
           </>
         ) : (
