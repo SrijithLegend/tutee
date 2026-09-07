@@ -6,7 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint",
+    "lint": "next lint",
     "validate-content": "tsx scripts/validate-content.ts"
   },
   "dependencies": {
@@ -24,7 +24,7 @@
     "@types/react": "^18",
     "@types/react-dom": "^18",
     "@types/better-sqlite3": "^7.6.11",
-    "eslint": "^9",
+    "eslint": "^8.57.0",
     "eslint-config-next": "^14.2.0",
     "tailwindcss": "^4",
     "typescript": "^5",
