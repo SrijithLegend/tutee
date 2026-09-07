@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import ConceptGraph from "@/components/ConceptGraph";
+import DiagnosticQuiz from "@/components/games/DiagnosticQuiz";
 import type { GraphEdge, GraphNode } from "@/lib/path";
 
 interface Graph {
@@ -18,15 +19,20 @@ export default function Home() {
       .then(setGraph);
   }, []);
 
+  const needsDiagnostic = graph != null && graph.nodes.every((n) => n.retrievability === 0);
+
   return (
     <div className="flex flex-col flex-1">
       <header className="flex items-center justify-between border-b border-white/10 px-6 py-4">
         <h1 className="text-lg font-semibold tracking-tight">tutee</h1>
         <p className="text-sm text-white/40">Mastery decays. So does the graph.</p>
       </header>
-      <main className="flex-1">
+      <main className="relative flex-1">
         {graph ? (
-          <ConceptGraph nodes={graph.nodes} edges={graph.edges} />
+          <>
+            <ConceptGraph nodes={graph.nodes} edges={graph.edges} />
+            {needsDiagnostic && <DiagnosticQuiz onComplete={setGraph} />}
+          </>
         ) : (
           <p className="p-6 text-white/40">Loading graph…</p>
         )}
