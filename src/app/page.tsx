@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import ConceptGraph from "@/components/ConceptGraph";
+import DevBar from "@/components/DevBar";
 import DiagnosticQuiz from "@/components/games/DiagnosticQuiz";
 import McqBattle from "@/components/games/McqBattle";
 import LessonPanel from "@/components/LessonPanel";
@@ -49,7 +50,10 @@ export default function Home() {
     <div className="flex flex-col flex-1">
       <header className="flex items-center justify-between border-b border-white/10 px-6 py-4">
         <h1 className="text-lg font-semibold tracking-tight">tutee</h1>
-        <p className="text-sm text-white/40">Mastery decays. So does the graph.</p>
+        <div className="flex items-center gap-4">
+          <p className="text-sm text-white/40">Mastery decays. So does the graph.</p>
+          {graph && <DevBar onGraphUpdate={setGraph} />}
+        </div>
       </header>
       <main className="relative flex-1">
         {graph ? (
