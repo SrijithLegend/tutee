@@ -1,0 +1,412 @@
+{
+  "subject": "Linear Equations",
+  "concepts": [
+    {
+      "id": "isolating-variables",
+      "name": "Isolating variables",
+      "prerequisites": [],
+      "lesson": {
+        "explanation": "To isolate a variable, undo whatever operations are attached to it, working in the opposite order they were applied. Add or subtract to move constants away, then multiply or divide to remove a coefficient. Whatever you do to one side of the equation, you must do to the other to keep it balanced.",
+        "workedExample": {
+          "problem": "x + 7 = 12",
+          "steps": [
+            "Subtract 7 from both sides: x + 7 - 7 = 12 - 7",
+            "Simplify: x = 5"
+          ]
+        },
+        "misconceptionWarning": "Students often apply an operation to only one side of the equation, breaking the balance. Always mirror the operation on both sides."
+      }
+    },
+    {
+      "id": "distributive-rule",
+      "name": "Distributive property",
+      "prerequisites": [],
+      "lesson": {
+        "explanation": "The distributive property says a(b + c) = ab + ac — you multiply the term outside the parentheses by every term inside. This lets you remove parentheses before combining like terms. Watch the sign of the outside term especially when it's negative.",
+        "workedExample": {
+          "problem": "3(x + 4)",
+          "steps": [
+            "Multiply 3 by x: 3x",
+            "Multiply 3 by 4: 12",
+            "Combine: 3x + 12"
+          ]
+        },
+        "misconceptionWarning": "Students often multiply only the first term inside the parentheses and forget the second, or mishandle a negative sign out front."
+      }
+    },
+    {
+      "id": "combining-like-terms",
+      "name": "Combining like terms",
+      "prerequisites": ["isolating-variables"],
+      "lesson": {
+        "explanation": "Like terms have the exact same variable raised to the same power — 3x and 2x are like terms, but 3x and 2 are not. Combine like terms by adding or subtracting their coefficients while leaving the variable part unchanged. This simplifies an expression before you try to solve it.",
+        "workedExample": {
+          "problem": "3x + 5 + 2x - 1",
+          "steps": [
+            "Group the x terms: 3x + 2x",
+            "Group the constants: 5 - 1",
+            "Combine: 5x + 4"
+          ]
+        },
+        "misconceptionWarning": "Students often add the coefficients AND the constants together. Constants and x-terms represent different quantities and can't be merged into one term."
+      }
+    },
+    {
+      "id": "one-step-equations",
+      "name": "One-step equations",
+      "prerequisites": ["isolating-variables"],
+      "lesson": {
+        "explanation": "A one-step equation needs exactly one inverse operation to solve — addition or subtraction cancels a constant, multiplication or division cancels a coefficient. Identify which operation is being done to x, then apply its opposite to both sides. Check your answer by substituting it back into the original equation.",
+        "workedExample": {
+          "problem": "5x = 20",
+          "steps": [
+            "Divide both sides by 5: 5x/5 = 20/5",
+            "Simplify: x = 4"
+          ]
+        },
+        "misconceptionWarning": "Students often subtract instead of dividing when a coefficient is multiplying the variable, or divide only one side."
+      }
+    },
+    {
+      "id": "two-step-equations",
+      "name": "Two-step equations",
+      "prerequisites": ["one-step-equations", "combining-like-terms"],
+      "lesson": {
+        "explanation": "A two-step equation needs two inverse operations, applied in reverse order of operations: undo addition or subtraction first, then undo multiplication or division. Isolating the variable term before dividing out its coefficient keeps the arithmetic simple and avoids mistakes.",
+        "workedExample": {
+          "problem": "2x + 3 = 11",
+          "steps": [
+            "Subtract 3 from both sides: 2x + 3 - 3 = 11 - 3",
+            "Simplify: 2x = 8",
+            "Divide both sides by 2: 2x/2 = 8/2",
+            "x = 4"
+          ]
+        },
+        "misconceptionWarning": "Students often divide before subtracting the constant, or forget to finish dividing out the coefficient at the end."
+      }
+    },
+    {
+      "id": "variables-on-both-sides",
+      "name": "Variables on both sides",
+      "prerequisites": ["two-step-equations", "distributive-rule"],
+      "lesson": {
+        "explanation": "When variables appear on both sides, first combine each side separately, then move all variable terms to one side by adding or subtracting them — treating a variable term like any other term you can move across the equals sign. Finish by isolating the variable as usual.",
+        "workedExample": {
+          "problem": "5x + 2 = 2x + 11",
+          "steps": [
+            "Subtract 2x from both sides: 5x - 2x + 2 = 2x - 2x + 11",
+            "Simplify: 3x + 2 = 11",
+            "Subtract 2 from both sides: 3x = 9",
+            "Divide by 3: x = 3"
+          ]
+        },
+        "misconceptionWarning": "Students often move a variable term to the other side without changing its sign, or move it from only one side."
+      }
+    },
+    {
+      "id": "equations-with-distribution",
+      "name": "Equations with distribution",
+      "prerequisites": ["distributive-rule", "combining-like-terms"],
+      "lesson": {
+        "explanation": "Some equations hide an extra step inside parentheses. Distribute first to clear the parentheses, then combine any like terms, and finally solve the resulting one- or two-step equation as usual.",
+        "workedExample": {
+          "problem": "3(x + 2) = 15",
+          "steps": [
+            "Distribute: 3x + 6 = 15",
+            "Subtract 6 from both sides: 3x = 9",
+            "Divide by 3: x = 3"
+          ]
+        },
+        "misconceptionWarning": "Students often solve inside the parentheses first as if it were the whole equation, or distribute to only one term inside."
+      }
+    },
+    {
+      "id": "slope-intercept-form",
+      "name": "Slope-intercept form",
+      "prerequisites": ["two-step-equations"],
+      "lesson": {
+        "explanation": "The slope-intercept form y = mx + b describes a line where m is the slope and b is the y-intercept, the point where the line crosses the y-axis. Given an equation in this form, you can read the slope and y-intercept directly. Rearrange any linear equation into this form by isolating y.",
+        "workedExample": {
+          "problem": "Rewrite 2x + y = 7 in slope-intercept form",
+          "steps": [
+            "Subtract 2x from both sides: y = 7 - 2x",
+            "Reorder: y = -2x + 7",
+            "Slope m = -2, y-intercept b = 7"
+          ]
+        },
+        "misconceptionWarning": "Students often mix up which number is the slope and which is the y-intercept, or forget to flip the sign of a term moved across the equals sign."
+      }
+    },
+    {
+      "id": "graphing-linear-equations",
+      "name": "Graphing linear equations",
+      "prerequisites": ["slope-intercept-form"],
+      "lesson": {
+        "explanation": "To graph a line from y = mx + b, plot the y-intercept b on the y-axis first, then use the slope m as rise over run to find a second point. Draw a straight line through the two points, extending it in both directions.",
+        "workedExample": {
+          "problem": "Graph y = 2x + 1",
+          "steps": [
+            "Plot the y-intercept at (0, 1)",
+            "Slope is 2, i.e. 2/1 — from (0,1) move up 2 and right 1 to (1, 3)",
+            "Draw a straight line through (0,1) and (1,3)"
+          ]
+        },
+        "misconceptionWarning": "Students often plot the y-intercept on the x-axis instead of the y-axis, or apply the slope as run/rise instead of rise/run."
+      }
+    },
+    {
+      "id": "linear-inequalities",
+      "name": "Linear inequalities",
+      "prerequisites": ["variables-on-both-sides"],
+      "lesson": {
+        "explanation": "Solving a linear inequality works exactly like solving an equation, with one critical exception: multiplying or dividing both sides by a negative number flips the direction of the inequality sign. Isolate the variable the same way you would in an equation, and check whether that flip applies.",
+        "workedExample": {
+          "problem": "-2x + 3 > 11",
+          "steps": [
+            "Subtract 3 from both sides: -2x > 8",
+            "Divide both sides by -2 and flip the sign: x < -4"
+          ]
+        },
+        "misconceptionWarning": "Students often forget to flip the inequality sign when dividing by a negative number."
+      }
+    }
+  ],
+
+  "misconceptions": [
+    { "id": "mc-iv-one-side", "conceptId": "isolating-variables", "name": "Applies an operation to only one side", "microExplanation": "You changed one side of the equation but not the other. An equation is a balance — whatever you subtract, add, multiply, or divide, you must do to BOTH sides.", "remedialConceptId": null },
+    { "id": "mc-iv-wrong-inverse", "conceptId": "isolating-variables", "name": "Uses the wrong inverse operation", "microExplanation": "To undo addition you subtract, and to undo subtraction you add — using the same operation again doesn't cancel it out, it doubles it.", "remedialConceptId": null },
+    { "id": "mc-iv-sign-drop", "conceptId": "isolating-variables", "name": "Drops the sign when a term crosses the equals sign", "microExplanation": "When a term moves across the equals sign, its sign flips. Dropping the negative silently changes the value.", "remedialConceptId": null },
+
+    { "id": "mc-dr-partial-distribute", "conceptId": "distributive-rule", "name": "Multiplies only the first term in parentheses", "microExplanation": "The outside number multiplies EVERY term inside the parentheses, not just the first one. 3(x + 4) needs both 3·x and 3·4.", "remedialConceptId": null },
+    { "id": "mc-dr-negative-distribute", "conceptId": "distributive-rule", "name": "Mishandles a negative sign when distributing", "microExplanation": "When the term outside is negative, it flips the sign of every term inside. -2(x - 5) becomes -2x + 10, not -2x - 10.", "remedialConceptId": null },
+    { "id": "mc-dr-add-instead-multiply", "conceptId": "distributive-rule", "name": "Adds the outside term instead of multiplying", "microExplanation": "The number next to parentheses multiplies what's inside — there's no operation symbol because multiplication is implied. 3(x + 4) is 3 times (x + 4), not 3 plus (x + 4).", "remedialConceptId": null },
+
+    { "id": "mc-add-unlike-terms", "conceptId": "combining-like-terms", "name": "Adds unlike terms together", "microExplanation": "3x and 5 aren't the same kind of quantity — one is 'x groups' and one is a plain number. You can only combine terms that share the same variable part.", "remedialConceptId": "distributive-rule" },
+    { "id": "mc-sign-error", "conceptId": "combining-like-terms", "name": "Drops or flips a sign when combining", "microExplanation": "The sign in front of a term belongs to that term. In 5 - 1, the constant is -1 being combined with 5, not both treated as positive.", "remedialConceptId": null },
+    { "id": "mc-coefficient-slip", "conceptId": "combining-like-terms", "name": "Miscounts the coefficient when combining", "microExplanation": "3x + 2x means 3 groups of x plus 2 groups of x — that's 5 groups of x, i.e. 5x. Recount the groups instead of guessing.", "remedialConceptId": null },
+
+    { "id": "mc-ose-wrong-op", "conceptId": "one-step-equations", "name": "Uses addition or subtraction to undo multiplication", "microExplanation": "5x means 5 times x. To undo multiplication, divide both sides by 5 — subtracting 5 doesn't cancel a coefficient.", "remedialConceptId": null },
+    { "id": "mc-ose-one-side", "conceptId": "one-step-equations", "name": "Applies the inverse operation to only one side", "microExplanation": "Dividing only one side breaks the equality. Whatever you do to isolate x must happen to both sides.", "remedialConceptId": "isolating-variables" },
+    { "id": "mc-ose-sign-flip", "conceptId": "one-step-equations", "name": "Loses the sign when dividing by a negative", "microExplanation": "Dividing by a negative number flips the sign of the result. 12 ÷ (-3) = -4, not 4.", "remedialConceptId": null },
+
+    { "id": "mc-tse-wrong-order", "conceptId": "two-step-equations", "name": "Divides by the coefficient before removing the constant", "microExplanation": "Undo addition or subtraction first, then division — dividing the whole equation by the coefficient before removing the constant makes the arithmetic messier and easy to botch.", "remedialConceptId": "isolating-variables" },
+    { "id": "mc-tse-add-not-subtract", "conceptId": "two-step-equations", "name": "Adds the constant instead of subtracting it", "microExplanation": "The constant is added to the variable term, so to undo it you subtract — adding it again moves further from the answer, not closer.", "remedialConceptId": null },
+    { "id": "mc-tse-coefficient-forgot", "conceptId": "two-step-equations", "name": "Forgets to divide by the coefficient at the end", "microExplanation": "Isolating the variable TERM (like 2x) isn't the same as isolating the variable itself — you still need to divide by the coefficient.", "remedialConceptId": null },
+
+    { "id": "mc-vbs-sign-drop", "conceptId": "variables-on-both-sides", "name": "Doesn't flip the sign when moving a variable term across", "microExplanation": "A term crossing the equals sign has its sign flipped — moving a variable term without subtracting it on both sides breaks the balance.", "remedialConceptId": "isolating-variables" },
+    { "id": "mc-vbs-add-not-subtract-constant", "conceptId": "variables-on-both-sides", "name": "Adds the constant instead of subtracting it", "microExplanation": "Once the variable terms are combined, the leftover constant is still added to the variable term — you undo it by subtracting, not adding.", "remedialConceptId": null },
+    { "id": "mc-vbs-coefficient-forgot", "conceptId": "variables-on-both-sides", "name": "Forgets to divide by the final coefficient", "microExplanation": "Combining the variable terms only gets you to Nx = M — you still need to divide by N to find x.", "remedialConceptId": null },
+
+    { "id": "mc-ewd-partial-distribute", "conceptId": "equations-with-distribution", "name": "Distributes to only the first term inside the parentheses", "microExplanation": "The outside number multiplies EVERY term inside the parentheses. Skipping the second term leaves part of the equation undistributed.", "remedialConceptId": "distributive-rule" },
+    { "id": "mc-ewd-skip-distribute", "conceptId": "equations-with-distribution", "name": "Ignores the outside coefficient entirely", "microExplanation": "3(x + 2) = 15 is not the same equation as x + 2 = 15 — the 3 must be distributed before you can isolate x.", "remedialConceptId": null },
+    { "id": "mc-ewd-coefficient-forgot", "conceptId": "equations-with-distribution", "name": "Forgets to divide by the coefficient at the end", "microExplanation": "After distributing and combining, you still have a coefficient on x — divide it out to finish isolating the variable.", "remedialConceptId": null },
+
+    { "id": "mc-sif-swap", "conceptId": "slope-intercept-form", "name": "Swaps the slope and y-intercept", "microExplanation": "In y = mx + b, m (attached to x) is the slope and b (alone) is the y-intercept — don't mix up which one is which.", "remedialConceptId": null },
+    { "id": "mc-sif-sign-drop", "conceptId": "slope-intercept-form", "name": "Forgets to flip the sign when moving a term across the equals sign", "microExplanation": "When a term moves from one side to the other, it becomes negative — the sign flips because you subtracted it from both sides.", "remedialConceptId": "isolating-variables" },
+    { "id": "mc-sif-drop-coefficient", "conceptId": "slope-intercept-form", "name": "Drops the coefficient in front of x when identifying slope", "microExplanation": "The slope is the ENTIRE coefficient in front of x, sign included — not just the x by itself.", "remedialConceptId": null },
+
+    { "id": "mc-gle-axis-swap", "conceptId": "graphing-linear-equations", "name": "Plots the y-intercept on the x-axis instead of the y-axis", "microExplanation": "In y = mx + b, b is a y-value — the point (0, b), not (b, 0). It belongs on the vertical axis.", "remedialConceptId": null },
+    { "id": "mc-gle-slope-invert", "conceptId": "graphing-linear-equations", "name": "Uses the slope as run over rise instead of rise over run", "microExplanation": "Slope is rise OVER run — vertical change first, then horizontal. Flipping the fraction sends you in the wrong direction.", "remedialConceptId": "slope-intercept-form" },
+    { "id": "mc-gle-sign-drop", "conceptId": "graphing-linear-equations", "name": "Ignores the sign of a negative slope", "microExplanation": "A negative slope means the line goes DOWN as x increases — dropping the negative sign sends the second point the wrong way.", "remedialConceptId": null },
+
+    { "id": "mc-li-no-flip", "conceptId": "linear-inequalities", "name": "Forgets to flip the inequality sign when dividing by a negative", "microExplanation": "Dividing both sides by a negative number reverses which side is bigger — the inequality sign must flip to stay true.", "remedialConceptId": "isolating-variables" },
+    { "id": "mc-li-boundary-error", "conceptId": "linear-inequalities", "name": "Changes a strict inequality to a non-strict one, or vice versa", "microExplanation": "The original inequality was strict, with no 'or equal to' — the solution must stay strict too.", "remedialConceptId": null },
+    { "id": "mc-li-arithmetic-slip", "conceptId": "linear-inequalities", "name": "Makes an arithmetic slip on the constant term", "microExplanation": "Double-check the basic subtraction step before worrying about the inequality direction — an early arithmetic slip carries through the rest of the solution.", "remedialConceptId": null }
+  ],
+
+  "questions": [
+    { "id": "q-iv-001", "conceptId": "isolating-variables", "gameType": "mcq", "difficulty": 1, "prompt": "Solve: x + 9 = 14", "options": [
+      { "id": "a", "text": "x = 5", "correct": true, "misconceptionId": null },
+      { "id": "b", "text": "x = 23", "correct": false, "misconceptionId": "mc-iv-wrong-inverse" },
+      { "id": "c", "text": "x = 14", "correct": false, "misconceptionId": "mc-iv-one-side" },
+      { "id": "d", "text": "x = -5", "correct": false, "misconceptionId": "mc-iv-sign-drop" }
+    ]},
+    { "id": "q-iv-002", "conceptId": "isolating-variables", "gameType": "mcq", "difficulty": 1, "prompt": "Solve: x - 6 = 10", "options": [
+      { "id": "a", "text": "x = 16", "correct": true, "misconceptionId": null },
+      { "id": "b", "text": "x = 4", "correct": false, "misconceptionId": "mc-iv-wrong-inverse" },
+      { "id": "c", "text": "x = 10", "correct": false, "misconceptionId": "mc-iv-one-side" },
+      { "id": "d", "text": "x = -16", "correct": false, "misconceptionId": "mc-iv-sign-drop" }
+    ]},
+    { "id": "q-iv-003", "conceptId": "isolating-variables", "gameType": "mcq", "difficulty": 1, "prompt": "Solve: x + 4 = -3", "options": [
+      { "id": "a", "text": "x = -7", "correct": true, "misconceptionId": null },
+      { "id": "b", "text": "x = 1", "correct": false, "misconceptionId": "mc-iv-wrong-inverse" },
+      { "id": "c", "text": "x = -3", "correct": false, "misconceptionId": "mc-iv-one-side" },
+      { "id": "d", "text": "x = 7", "correct": false, "misconceptionId": "mc-iv-sign-drop" }
+    ]},
+
+    { "id": "q-dr-001", "conceptId": "distributive-rule", "gameType": "mcq", "difficulty": 1, "prompt": "Expand: 3(x + 4)", "options": [
+      { "id": "a", "text": "3x + 12", "correct": true, "misconceptionId": null },
+      { "id": "b", "text": "3x + 4", "correct": false, "misconceptionId": "mc-dr-partial-distribute" },
+      { "id": "c", "text": "x + 12", "correct": false, "misconceptionId": "mc-dr-negative-distribute" },
+      { "id": "d", "text": "3x + 3 + 4", "correct": false, "misconceptionId": "mc-dr-add-instead-multiply" }
+    ]},
+    { "id": "q-dr-002", "conceptId": "distributive-rule", "gameType": "mcq", "difficulty": 2, "prompt": "Expand: -2(x - 5)", "options": [
+      { "id": "a", "text": "-2x + 10", "correct": true, "misconceptionId": null },
+      { "id": "b", "text": "-2x - 5", "correct": false, "misconceptionId": "mc-dr-partial-distribute" },
+      { "id": "c", "text": "-2x - 10", "correct": false, "misconceptionId": "mc-dr-negative-distribute" },
+      { "id": "d", "text": "-2x - 2 - 5", "correct": false, "misconceptionId": "mc-dr-add-instead-multiply" }
+    ]},
+    { "id": "q-dr-003", "conceptId": "distributive-rule", "gameType": "mcq", "difficulty": 2, "prompt": "Expand: 4(x + 7)", "options": [
+      { "id": "a", "text": "4x + 28", "correct": true, "misconceptionId": null },
+      { "id": "b", "text": "4x + 7", "correct": false, "misconceptionId": "mc-dr-partial-distribute" },
+      { "id": "c", "text": "x + 28", "correct": false, "misconceptionId": "mc-dr-negative-distribute" },
+      { "id": "d", "text": "4x + 4 + 7", "correct": false, "misconceptionId": "mc-dr-add-instead-multiply" }
+    ]},
+
+    { "id": "q-clt-001", "conceptId": "combining-like-terms", "gameType": "mcq", "difficulty": 2, "prompt": "Simplify: 3x + 5 + 2x - 1", "options": [
+      { "id": "a", "text": "5x + 4", "correct": true, "misconceptionId": null },
+      { "id": "b", "text": "9x", "correct": false, "misconceptionId": "mc-add-unlike-terms" },
+      { "id": "c", "text": "5x + 6", "correct": false, "misconceptionId": "mc-sign-error" },
+      { "id": "d", "text": "6x + 4", "correct": false, "misconceptionId": "mc-coefficient-slip" }
+    ]},
+    { "id": "q-clt-002", "conceptId": "combining-like-terms", "gameType": "mcq", "difficulty": 2, "prompt": "Simplify: 4x + 9 - x + 3", "options": [
+      { "id": "a", "text": "3x + 12", "correct": true, "misconceptionId": null },
+      { "id": "b", "text": "15x", "correct": false, "misconceptionId": "mc-add-unlike-terms" },
+      { "id": "c", "text": "5x + 12", "correct": false, "misconceptionId": "mc-sign-error" },
+      { "id": "d", "text": "4x + 12", "correct": false, "misconceptionId": "mc-coefficient-slip" }
+    ]},
+    { "id": "q-clt-003", "conceptId": "combining-like-terms", "gameType": "mcq", "difficulty": 2, "prompt": "Simplify: 6x - 3 + 2x + 5", "options": [
+      { "id": "a", "text": "8x + 2", "correct": true, "misconceptionId": null },
+      { "id": "b", "text": "10x", "correct": false, "misconceptionId": "mc-add-unlike-terms" },
+      { "id": "c", "text": "4x + 2", "correct": false, "misconceptionId": "mc-sign-error" },
+      { "id": "d", "text": "7x + 2", "correct": false, "misconceptionId": "mc-coefficient-slip" }
+    ]},
+
+    { "id": "q-ose-001", "conceptId": "one-step-equations", "gameType": "mcq", "difficulty": 1, "prompt": "Solve: -4x = 12", "options": [
+      { "id": "a", "text": "x = -3", "correct": true, "misconceptionId": null },
+      { "id": "b", "text": "x = 16", "correct": false, "misconceptionId": "mc-ose-wrong-op" },
+      { "id": "c", "text": "x = 12", "correct": false, "misconceptionId": "mc-ose-one-side" },
+      { "id": "d", "text": "x = 3", "correct": false, "misconceptionId": "mc-ose-sign-flip" }
+    ]},
+    { "id": "q-ose-002", "conceptId": "one-step-equations", "gameType": "mcq", "difficulty": 1, "prompt": "Solve: -6x = 18", "options": [
+      { "id": "a", "text": "x = -3", "correct": true, "misconceptionId": null },
+      { "id": "b", "text": "x = 24", "correct": false, "misconceptionId": "mc-ose-wrong-op" },
+      { "id": "c", "text": "x = 18", "correct": false, "misconceptionId": "mc-ose-one-side" },
+      { "id": "d", "text": "x = 3", "correct": false, "misconceptionId": "mc-ose-sign-flip" }
+    ]},
+    { "id": "q-ose-003", "conceptId": "one-step-equations", "gameType": "mcq", "difficulty": 1, "prompt": "Solve: -3x = 21", "options": [
+      { "id": "a", "text": "x = -7", "correct": true, "misconceptionId": null },
+      { "id": "b", "text": "x = 24", "correct": false, "misconceptionId": "mc-ose-wrong-op" },
+      { "id": "c", "text": "x = 21", "correct": false, "misconceptionId": "mc-ose-one-side" },
+      { "id": "d", "text": "x = 7", "correct": false, "misconceptionId": "mc-ose-sign-flip" }
+    ]},
+
+    { "id": "q-tse-001", "conceptId": "two-step-equations", "gameType": "mcq", "difficulty": 2, "prompt": "Solve: 2x + 3 = 11", "options": [
+      { "id": "a", "text": "x = 4", "correct": true, "misconceptionId": null },
+      { "id": "b", "text": "x = 5.5", "correct": false, "misconceptionId": "mc-tse-wrong-order" },
+      { "id": "c", "text": "x = 7", "correct": false, "misconceptionId": "mc-tse-add-not-subtract" },
+      { "id": "d", "text": "x = 8", "correct": false, "misconceptionId": "mc-tse-coefficient-forgot" }
+    ]},
+    { "id": "q-tse-002", "conceptId": "two-step-equations", "gameType": "mcq", "difficulty": 2, "prompt": "Solve: 3x + 6 = 21", "options": [
+      { "id": "a", "text": "x = 5", "correct": true, "misconceptionId": null },
+      { "id": "b", "text": "x = 7", "correct": false, "misconceptionId": "mc-tse-wrong-order" },
+      { "id": "c", "text": "x = 9", "correct": false, "misconceptionId": "mc-tse-add-not-subtract" },
+      { "id": "d", "text": "x = 15", "correct": false, "misconceptionId": "mc-tse-coefficient-forgot" }
+    ]},
+    { "id": "q-tse-003", "conceptId": "two-step-equations", "gameType": "mcq", "difficulty": 2, "prompt": "Solve: 4x + 8 = 28", "options": [
+      { "id": "a", "text": "x = 5", "correct": true, "misconceptionId": null },
+      { "id": "b", "text": "x = 7", "correct": false, "misconceptionId": "mc-tse-wrong-order" },
+      { "id": "c", "text": "x = 9", "correct": false, "misconceptionId": "mc-tse-add-not-subtract" },
+      { "id": "d", "text": "x = 20", "correct": false, "misconceptionId": "mc-tse-coefficient-forgot" }
+    ]},
+
+    { "id": "q-vbs-001", "conceptId": "variables-on-both-sides", "gameType": "mcq", "difficulty": 3, "prompt": "Solve: 4x + 1 = 2x + 9", "options": [
+      { "id": "a", "text": "x = 4", "correct": true, "misconceptionId": null },
+      { "id": "b", "text": "x = 2", "correct": false, "misconceptionId": "mc-vbs-sign-drop" },
+      { "id": "c", "text": "x = 5", "correct": false, "misconceptionId": "mc-vbs-add-not-subtract-constant" },
+      { "id": "d", "text": "x = 8", "correct": false, "misconceptionId": "mc-vbs-coefficient-forgot" }
+    ]},
+    { "id": "q-vbs-002", "conceptId": "variables-on-both-sides", "gameType": "mcq", "difficulty": 3, "prompt": "Solve: 5x + 4 = 3x + 14", "options": [
+      { "id": "a", "text": "x = 5", "correct": true, "misconceptionId": null },
+      { "id": "b", "text": "x = 2", "correct": false, "misconceptionId": "mc-vbs-sign-drop" },
+      { "id": "c", "text": "x = 9", "correct": false, "misconceptionId": "mc-vbs-add-not-subtract-constant" },
+      { "id": "d", "text": "x = 10", "correct": false, "misconceptionId": "mc-vbs-coefficient-forgot" }
+    ]},
+    { "id": "q-vbs-003", "conceptId": "variables-on-both-sides", "gameType": "mcq", "difficulty": 3, "prompt": "Solve: 6x + 5 = 2x + 17", "options": [
+      { "id": "a", "text": "x = 3", "correct": true, "misconceptionId": null },
+      { "id": "b", "text": "x = 2", "correct": false, "misconceptionId": "mc-vbs-sign-drop" },
+      { "id": "c", "text": "x = 5.5", "correct": false, "misconceptionId": "mc-vbs-add-not-subtract-constant" },
+      { "id": "d", "text": "x = 12", "correct": false, "misconceptionId": "mc-vbs-coefficient-forgot" }
+    ]},
+
+    { "id": "q-ewd-001", "conceptId": "equations-with-distribution", "gameType": "mcq", "difficulty": 3, "prompt": "Solve: 2(x + 5) = 18", "options": [
+      { "id": "a", "text": "x = 4", "correct": true, "misconceptionId": null },
+      { "id": "b", "text": "x = 6.5", "correct": false, "misconceptionId": "mc-ewd-partial-distribute" },
+      { "id": "c", "text": "x = 13", "correct": false, "misconceptionId": "mc-ewd-skip-distribute" },
+      { "id": "d", "text": "x = 8", "correct": false, "misconceptionId": "mc-ewd-coefficient-forgot" }
+    ]},
+    { "id": "q-ewd-002", "conceptId": "equations-with-distribution", "gameType": "mcq", "difficulty": 3, "prompt": "Solve: 4(x + 3) = 32", "options": [
+      { "id": "a", "text": "x = 5", "correct": true, "misconceptionId": null },
+      { "id": "b", "text": "x = 7.25", "correct": false, "misconceptionId": "mc-ewd-partial-distribute" },
+      { "id": "c", "text": "x = 29", "correct": false, "misconceptionId": "mc-ewd-skip-distribute" },
+      { "id": "d", "text": "x = 20", "correct": false, "misconceptionId": "mc-ewd-coefficient-forgot" }
+    ]},
+    { "id": "q-ewd-003", "conceptId": "equations-with-distribution", "gameType": "mcq", "difficulty": 3, "prompt": "Solve: 5(x + 2) = 35", "options": [
+      { "id": "a", "text": "x = 5", "correct": true, "misconceptionId": null },
+      { "id": "b", "text": "x = 6.6", "correct": false, "misconceptionId": "mc-ewd-partial-distribute" },
+      { "id": "c", "text": "x = 33", "correct": false, "misconceptionId": "mc-ewd-skip-distribute" },
+      { "id": "d", "text": "x = 25", "correct": false, "misconceptionId": "mc-ewd-coefficient-forgot" }
+    ]},
+
+    { "id": "q-sif-001", "conceptId": "slope-intercept-form", "gameType": "mcq", "difficulty": 2, "prompt": "Rewrite 3x + y = 9 in slope-intercept form", "options": [
+      { "id": "a", "text": "y = -3x + 9", "correct": true, "misconceptionId": null },
+      { "id": "b", "text": "y = 9x - 3", "correct": false, "misconceptionId": "mc-sif-swap" },
+      { "id": "c", "text": "y = 3x + 9", "correct": false, "misconceptionId": "mc-sif-sign-drop" },
+      { "id": "d", "text": "y = x + 9", "correct": false, "misconceptionId": "mc-sif-drop-coefficient" }
+    ]},
+    { "id": "q-sif-002", "conceptId": "slope-intercept-form", "gameType": "mcq", "difficulty": 2, "prompt": "Rewrite 4x + y = 12 in slope-intercept form", "options": [
+      { "id": "a", "text": "y = -4x + 12", "correct": true, "misconceptionId": null },
+      { "id": "b", "text": "y = 12x - 4", "correct": false, "misconceptionId": "mc-sif-swap" },
+      { "id": "c", "text": "y = 4x + 12", "correct": false, "misconceptionId": "mc-sif-sign-drop" },
+      { "id": "d", "text": "y = x + 12", "correct": false, "misconceptionId": "mc-sif-drop-coefficient" }
+    ]},
+    { "id": "q-sif-003", "conceptId": "slope-intercept-form", "gameType": "mcq", "difficulty": 2, "prompt": "Rewrite 5x + y = 20 in slope-intercept form", "options": [
+      { "id": "a", "text": "y = -5x + 20", "correct": true, "misconceptionId": null },
+      { "id": "b", "text": "y = 20x - 5", "correct": false, "misconceptionId": "mc-sif-swap" },
+      { "id": "c", "text": "y = 5x + 20", "correct": false, "misconceptionId": "mc-sif-sign-drop" },
+      { "id": "d", "text": "y = x + 20", "correct": false, "misconceptionId": "mc-sif-drop-coefficient" }
+    ]},
+
+    { "id": "q-gle-001", "conceptId": "graphing-linear-equations", "gameType": "mcq", "difficulty": 3, "prompt": "For the line y = -2x + 5, which is the correct starting point and direction to plot it?", "options": [
+      { "id": "a", "text": "Start at (0, 5); go down 2, right 1", "correct": true, "misconceptionId": null },
+      { "id": "b", "text": "Start at (5, 0); go down 2, right 1", "correct": false, "misconceptionId": "mc-gle-axis-swap" },
+      { "id": "c", "text": "Start at (0, 5); go right 2, down 1", "correct": false, "misconceptionId": "mc-gle-slope-invert" },
+      { "id": "d", "text": "Start at (0, 5); go up 2, right 1", "correct": false, "misconceptionId": "mc-gle-sign-drop" }
+    ]},
+    { "id": "q-gle-002", "conceptId": "graphing-linear-equations", "gameType": "mcq", "difficulty": 3, "prompt": "For the line y = -3x + 4, which is the correct starting point and direction to plot it?", "options": [
+      { "id": "a", "text": "Start at (0, 4); go down 3, right 1", "correct": true, "misconceptionId": null },
+      { "id": "b", "text": "Start at (4, 0); go down 3, right 1", "correct": false, "misconceptionId": "mc-gle-axis-swap" },
+      { "id": "c", "text": "Start at (0, 4); go right 3, down 1", "correct": false, "misconceptionId": "mc-gle-slope-invert" },
+      { "id": "d", "text": "Start at (0, 4); go up 3, right 1", "correct": false, "misconceptionId": "mc-gle-sign-drop" }
+    ]},
+    { "id": "q-gle-003", "conceptId": "graphing-linear-equations", "gameType": "mcq", "difficulty": 3, "prompt": "For the line y = -x + 6, which is the correct starting point and direction to plot it?", "options": [
+      { "id": "a", "text": "Start at (0, 6); go down 1, right 1", "correct": true, "misconceptionId": null },
+      { "id": "b", "text": "Start at (6, 0); go down 1, right 1", "correct": false, "misconceptionId": "mc-gle-axis-swap" },
+      { "id": "c", "text": "Start at (0, 6); go right 1, down 1", "correct": false, "misconceptionId": "mc-gle-slope-invert" },
+      { "id": "d", "text": "Start at (0, 6); go up 1, right 1", "correct": false, "misconceptionId": "mc-gle-sign-drop" }
+    ]},
+
+    { "id": "q-li-001", "conceptId": "linear-inequalities", "gameType": "mcq", "difficulty": 3, "prompt": "Solve: -2x + 3 > 11", "options": [
+      { "id": "a", "text": "x < -4", "correct": true, "misconceptionId": null },
+      { "id": "b", "text": "x > -4", "correct": false, "misconceptionId": "mc-li-no-flip" },
+      { "id": "c", "text": "x ≤ -4", "correct": false, "misconceptionId": "mc-li-boundary-error" },
+      { "id": "d", "text": "x < -7", "correct": false, "misconceptionId": "mc-li-arithmetic-slip" }
+    ]},
+    { "id": "q-li-002", "conceptId": "linear-inequalities", "gameType": "mcq", "difficulty": 3, "prompt": "Solve: -3x + 2 > 14", "options": [
+      { "id": "a", "text": "x < -4", "correct": true, "misconceptionId": null },
+      { "id": "b", "text": "x > -4", "correct": false, "misconceptionId": "mc-li-no-flip" },
+      { "id": "c", "text": "x ≤ -4", "correct": false, "misconceptionId": "mc-li-boundary-error" },
+      { "id": "d", "text": "x < -5.33", "correct": false, "misconceptionId": "mc-li-arithmetic-slip" }
+    ]},
+    { "id": "q-li-003", "conceptId": "linear-inequalities", "gameType": "mcq", "difficulty": 3, "prompt": "Solve: -4x + 5 > 21", "options": [
+      { "id": "a", "text": "x < -4", "correct": true, "misconceptionId": null },
+      { "id": "b", "text": "x > -4", "correct": false, "misconceptionId": "mc-li-no-flip" },
+      { "id": "c", "text": "x ≤ -4", "correct": false, "misconceptionId": "mc-li-boundary-error" },
+      { "id": "d", "text": "x < -4.5", "correct": false, "misconceptionId": "mc-li-arithmetic-slip" }
+    ]},
+
+    { "id": "q-solve-seq-001", "conceptId": "isolating-variables", "gameType": "sequence", "difficulty": 2, "prompt": "Order the steps to solve 2x + 3 = 11", "items": ["Subtract 3 from both sides", "Simplify to 2x = 8", "Divide both sides by 2", "x = 4"], "correctOrder": [0, 1, 2, 3] },
+    { "id": "q-solve-seq-002", "conceptId": "combining-like-terms", "gameType": "sequence", "difficulty": 1, "prompt": "Order the steps to simplify 4x + 9 - x + 3", "items": ["Group the x terms: 4x - x", "Group the constants: 9 + 3", "Combine: 3x + 12"], "correctOrder": [0, 1, 2] },
+    { "id": "q-solve-seq-003", "conceptId": "equations-with-distribution", "gameType": "sequence", "difficulty": 3, "prompt": "Order the steps to solve 3(x + 2) = 15", "items": ["Distribute: 3x + 6 = 15", "Subtract 6 from both sides: 3x = 9", "Divide both sides by 3: x = 3"], "correctOrder": [0, 1, 2] }
+  ]
+}
