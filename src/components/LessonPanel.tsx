@@ -29,23 +29,23 @@ export default function LessonPanel({ conceptId, onClose }: LessonPanelProps) {
   }, [conceptId]);
 
   return (
-    <div className="absolute inset-0 flex items-center justify-center bg-black/70">
-      <div className="w-full max-w-xl rounded-lg border border-white/10 bg-[#11151f] p-6">
+    <div className="absolute inset-0 flex items-center justify-center bg-black/40">
+      <div className="w-full max-w-xl rounded-sm border border-hairline bg-card p-8 shadow-xl">
         {!lesson ? (
-          <p className="text-white/60">Loading lesson…</p>
+          <p className="text-muted">Loading lesson…</p>
         ) : (
           <>
-            <p className="mb-1 text-xs uppercase tracking-wide text-white/40">Lesson</p>
-            <h2 className="mb-4 text-lg font-medium">{lesson.name}</h2>
+            <p className="mb-1 text-xs uppercase tracking-[0.2em] text-muted">Lesson</p>
+            <h2 className="mb-4 font-serif text-2xl italic">{lesson.name}</h2>
 
             <ExplainPanel reason={lesson.reason} />
 
-            <p className="mb-4 text-sm leading-relaxed text-white/80">{lesson.explanation}</p>
+            <p className="mb-4 text-sm leading-relaxed text-foreground/80">{lesson.explanation}</p>
 
-            <div className="mb-4 rounded border border-white/10 bg-black/30 p-4">
-              <p className="mb-2 text-xs uppercase tracking-wide text-white/40">Worked example</p>
-              <p className="mb-2 font-mono text-sm text-white/90">{lesson.workedExample.problem}</p>
-              <ol className="list-decimal space-y-1 pl-5 text-sm text-white/70">
+            <div className="mb-4 rounded-sm border border-hairline bg-black/[0.03] p-4">
+              <p className="mb-2 text-xs uppercase tracking-wide text-muted">Worked example</p>
+              <p className="mb-2 font-mono text-sm text-foreground">{lesson.workedExample.problem}</p>
+              <ol className="list-decimal space-y-1 pl-5 text-sm text-foreground/70">
                 {lesson.workedExample.steps.map((step, i) => (
                   <li key={i}>{step}</li>
                 ))}
@@ -53,10 +53,10 @@ export default function LessonPanel({ conceptId, onClose }: LessonPanelProps) {
             </div>
 
             {lesson.misconceptions.length > 0 && (
-              <div className="mb-6 rounded border border-[#E09A32]/30 bg-[#E09A32]/10 p-4">
-                <p className="mb-2 text-xs uppercase tracking-wide text-[#E09A32]">Watch out for</p>
-                <p className="mb-2 text-sm text-white/70">{lesson.misconceptionWarning}</p>
-                <ul className="list-disc space-y-1 pl-5 text-sm text-white/80">
+              <div className="mb-6 rounded-sm border border-[#E09A32]/40 bg-[#E09A32]/10 p-4">
+                <p className="mb-2 text-xs uppercase tracking-wide text-[#b8791f]">Watch out for</p>
+                <p className="mb-2 text-sm text-foreground/70">{lesson.misconceptionWarning}</p>
+                <ul className="list-disc space-y-1 pl-5 text-sm text-foreground/80">
                   {lesson.misconceptions.map((m) => (
                     <li key={m.id}>{m.name}</li>
                   ))}
@@ -66,7 +66,7 @@ export default function LessonPanel({ conceptId, onClose }: LessonPanelProps) {
 
             <button
               onClick={onClose}
-              className="w-full rounded border border-white/10 px-4 py-2 text-center transition-colors hover:border-white/30 hover:bg-white/5"
+              className="w-full rounded-sm border border-hairline px-4 py-2 text-center text-sm uppercase tracking-wide transition-colors hover:border-foreground/40 hover:bg-black/5"
             >
               Got it
             </button>

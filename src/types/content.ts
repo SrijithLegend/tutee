@@ -7,6 +7,8 @@ export interface Lesson {
   explanation: string;
   workedExample: WorkedExample;
   misconceptionWarning: string;
+  /** Short phrases a correct explanation of this concept should include — scored heuristically for the teach-back exercise, never by an LLM. */
+  keyTerms: string[];
 }
 
 export interface Concept {

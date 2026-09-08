@@ -26,6 +26,13 @@ for (const q of content.questions) {
   if (!conceptIds.has(q.conceptId)) errors.push(`question "${q.id}" has dangling conceptId "${q.conceptId}"`);
 }
 
+// Every concept needs enough keyTerms to score a teach-back explanation
+for (const c of content.concepts) {
+  if (!c.lesson.keyTerms || c.lesson.keyTerms.length < 2) {
+    errors.push(`concept "${c.id}" needs >= 2 lesson.keyTerms for teach-back scoring`);
+  }
+}
+
 // Untagged distractors: every incorrect MCQ option must carry a non-null misconceptionId that exists
 const mcqQuestions = content.questions.filter((q): q is McqQuestion => q.gameType === "mcq");
 for (const q of mcqQuestions) {

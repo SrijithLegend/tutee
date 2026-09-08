@@ -13,8 +13,10 @@ const STATE_COLOR: Record<GraphNode["state"], string> = {
   mastered: "#2E8B6F",
 };
 
-const LINK_COLOR_LIT = "#3FB88A";
-const LINK_COLOR_DIM = "#3A4150";
+const LINK_COLOR_LIT = "#2E8B6F";
+const LINK_COLOR_DIM = "#C9C5BE";
+const GRAPH_BACKGROUND = "#E7E5E1";
+const LABEL_COLOR = "#1A1A1A";
 
 const TRANSITION_MS = 600;
 
@@ -90,7 +92,7 @@ export default function ConceptGraph({ nodes, edges, onNodeClick }: ConceptGraph
         graphData={graphData}
         width={size.width}
         height={size.height}
-        backgroundColor="#0B0E14"
+        backgroundColor={GRAPH_BACKGROUND}
         nodeId="id"
         nodeRelSize={4}
         nodeVal={(node) => {
@@ -111,25 +113,23 @@ export default function ConceptGraph({ nodes, edges, onNodeClick }: ConceptGraph
           const color = STATE_COLOR[n.state];
           const radius = 6 + n.mastery * 5;
 
-          const glowRadius = radius + 8;
-          const gradient = ctx.createRadialGradient(n.x, n.y, radius * 0.4, n.x, n.y, glowRadius);
-          gradient.addColorStop(0, hexToRgba(color, 0.6 * r));
-          gradient.addColorStop(1, hexToRgba(color, 0));
-          ctx.fillStyle = gradient;
-          ctx.beginPath();
-          ctx.arc(n.x, n.y, glowRadius, 0, 2 * Math.PI);
-          ctx.fill();
-
-          ctx.fillStyle = color;
+          // On a light backdrop a radial gradient-to-transparent glow has nothing dark to
+          // glow into, so retrievability instead reads as opacity (faded = forgotten, full
+          // = fresh) plus a soft colored shadow standing in for the glow halo.
+          ctx.save();
+          ctx.shadowColor = hexToRgba(color, 0.55 * r);
+          ctx.shadowBlur = 16 * r;
+          ctx.fillStyle = hexToRgba(color, 0.3 + 0.7 * r);
           ctx.beginPath();
           ctx.arc(n.x, n.y, radius, 0, 2 * Math.PI);
           ctx.fill();
+          ctx.restore();
 
           const fontSize = 11 / globalScale;
           ctx.font = `${fontSize}px sans-serif`;
           ctx.textAlign = "center";
           ctx.textBaseline = "top";
-          ctx.fillStyle = "#E8ECF4";
+          ctx.fillStyle = LABEL_COLOR;
           ctx.fillText(n.name, n.x, n.y + radius + 3);
         }}
         nodeLabel={(node) => {

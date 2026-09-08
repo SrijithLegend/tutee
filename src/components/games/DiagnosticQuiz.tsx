@@ -59,24 +59,24 @@ export default function DiagnosticQuiz({ onComplete }: DiagnosticQuizProps) {
   }
 
   return (
-    <div className="absolute inset-0 flex items-center justify-center bg-black/70">
-      <div className="w-full max-w-lg rounded-lg border border-white/10 bg-[#11151f] p-6">
+    <div className="absolute inset-0 flex items-center justify-center bg-black/40">
+      <div className="w-full max-w-lg rounded-sm border border-hairline bg-card p-8 shadow-xl">
         {!questions ? (
-          <p className="text-white/60">Loading diagnostic…</p>
+          <p className="text-muted">Loading diagnostic…</p>
         ) : submitting ? (
-          <p className="text-white/60">Scoring your baseline…</p>
+          <p className="text-muted">Scoring your baseline…</p>
         ) : (
           <>
-            <p className="mb-4 text-xs uppercase tracking-wide text-white/40">
+            <p className="mb-4 text-xs uppercase tracking-[0.2em] text-muted">
               Diagnostic — question {index + 1} of {questions.length}
             </p>
-            <h2 className="mb-6 text-lg font-medium">{questions[index].prompt}</h2>
+            <h2 className="mb-6 font-serif text-xl italic">{questions[index].prompt}</h2>
             <div className="flex flex-col gap-2">
               {questions[index].options.map((option) => (
                 <button
                   key={option.id}
                   onClick={() => selectOption(option.id)}
-                  className="rounded border border-white/10 px-4 py-2 text-left transition-colors hover:border-white/30 hover:bg-white/5"
+                  className="rounded-sm border border-hairline px-4 py-2 text-left transition-colors hover:border-foreground/40 hover:bg-black/5"
                 >
                   {option.text}
                 </button>

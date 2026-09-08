@@ -93,32 +93,32 @@ export default function RecallRush({ conceptIds, reason, onGraphUpdate, onComple
   }
 
   return (
-    <div className="absolute inset-0 flex items-center justify-center bg-black/70">
-      <div className="w-full max-w-lg rounded-lg border border-[#E09A32]/40 bg-[#11151f] p-6">
-        <div className="mb-1 flex items-center justify-between text-xs uppercase tracking-wide">
-          <span className="font-semibold text-[#E09A32]">Recall Rush</span>
-          <span className="text-white/50">
+    <div className="absolute inset-0 flex items-center justify-center bg-black/40">
+      <div className="w-full max-w-lg rounded-sm border border-[#E09A32]/50 bg-card p-8 shadow-xl">
+        <div className="mb-1 flex items-center justify-between text-xs uppercase tracking-[0.2em]">
+          <span className="font-semibold text-[#b8791f]">Recall Rush</span>
+          <span className="text-muted">
             {secondsLeft}s · {Math.min(index + 1, conceptIds.length)}/{conceptIds.length}
           </span>
         </div>
         <ExplainPanel reason={reason} />
         {!question ? (
-          <p className="text-white/60">Loading…</p>
+          <p className="text-muted">Loading…</p>
         ) : question.gameType === "sequence" ? (
           <DragSequence question={question} onComplete={advance} />
         ) : feedback ? (
-          <p className={`text-lg font-medium ${feedback === "correct" ? "text-[#2E8B6F]" : "text-[#E09A32]"}`}>
+          <p className={`text-lg font-medium ${feedback === "correct" ? "text-[#2E8B6F]" : "text-[#b8791f]"}`}>
             {feedback === "correct" ? "Correct!" : "Not quite."}
           </p>
         ) : (
           <>
-            <h2 className="mb-4 text-lg font-medium">{question.prompt}</h2>
+            <h2 className="mb-4 font-serif text-xl italic">{question.prompt}</h2>
             <div className="flex flex-col gap-2">
               {question.options.map((option) => (
                 <button
                   key={option.id}
                   onClick={() => selectOption(option.id)}
-                  className="rounded border border-white/10 px-4 py-2 text-left transition-colors hover:border-white/30 hover:bg-white/5"
+                  className="rounded-sm border border-hairline px-4 py-2 text-left transition-colors hover:border-foreground/40 hover:bg-black/5"
                 >
                   {option.text}
                 </button>

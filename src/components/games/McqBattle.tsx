@@ -59,23 +59,23 @@ export default function McqBattle({ conceptId, onComplete }: McqBattleProps) {
   }
 
   return (
-    <div className="absolute inset-0 flex items-center justify-center bg-black/70">
-      <div className="w-full max-w-lg rounded-lg border border-white/10 bg-[#11151f] p-6">
+    <div className="absolute inset-0 flex items-center justify-center bg-black/40">
+      <div className="w-full max-w-lg rounded-sm border border-hairline bg-card p-8 shadow-xl">
         {!question ? (
-          <p className="text-white/60">Loading question…</p>
+          <p className="text-muted">Loading question…</p>
         ) : question.gameType === "sequence" ? (
           <DragSequence question={question} onComplete={onComplete} />
         ) : !result ? (
           <>
-            <p className="mb-1 text-xs uppercase tracking-wide text-white/40">MCQ Battle</p>
-            <h2 className="mb-4 text-lg font-medium">{question.prompt}</h2>
+            <p className="mb-1 text-xs uppercase tracking-[0.2em] text-muted">MCQ Battle</p>
+            <h2 className="mb-4 font-serif text-xl italic">{question.prompt}</h2>
             <ExplainPanel reason={question.reason} />
             <div className="flex flex-col gap-2">
               {question.options.map((option) => (
                 <button
                   key={option.id}
                   onClick={() => selectOption(option.id)}
-                  className="rounded border border-white/10 px-4 py-2 text-left transition-colors hover:border-white/30 hover:bg-white/5"
+                  className="rounded-sm border border-hairline px-4 py-2 text-left transition-colors hover:border-foreground/40 hover:bg-black/5"
                 >
                   {option.text}
                 </button>
@@ -84,15 +84,17 @@ export default function McqBattle({ conceptId, onComplete }: McqBattleProps) {
           </>
         ) : (
           <>
-            <p className={`mb-2 text-lg font-medium ${result.correct ? "text-[#2E8B6F]" : "text-[#E09A32]"}`}>
+            <p className={`mb-2 text-lg font-medium ${result.correct ? "text-[#2E8B6F]" : "text-[#b8791f]"}`}>
               {result.correct ? "Correct!" : "Not quite."}
             </p>
             {!result.correct && result.misconceptionName && (
-              <div className="mb-4 rounded border border-[#E09A32]/30 bg-[#E09A32]/10 p-3">
-                <p className="text-sm font-medium text-[#E09A32]">{result.misconceptionName}</p>
-                {result.microExplanation && <p className="mt-1 text-sm text-white/70">{result.microExplanation}</p>}
+              <div className="mb-4 rounded-sm border border-[#E09A32]/40 bg-[#E09A32]/10 p-3">
+                <p className="text-sm font-medium text-[#b8791f]">{result.misconceptionName}</p>
+                {result.microExplanation && (
+                  <p className="mt-1 text-sm text-foreground/70">{result.microExplanation}</p>
+                )}
                 {result.strikeCount != null && (
-                  <p className="mt-2 text-xs text-white/40">Strike {result.strikeCount} of 3</p>
+                  <p className="mt-2 text-xs text-muted">Strike {result.strikeCount} of 3</p>
                 )}
               </div>
             )}
@@ -103,7 +105,7 @@ export default function McqBattle({ conceptId, onComplete }: McqBattleProps) {
             )}
             <button
               onClick={close}
-              className="w-full rounded border border-white/10 px-4 py-2 text-center transition-colors hover:border-white/30 hover:bg-white/5"
+              className="w-full rounded-sm border border-hairline px-4 py-2 text-center text-sm uppercase tracking-wide transition-colors hover:border-foreground/40 hover:bg-black/5"
             >
               Continue
             </button>

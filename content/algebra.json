@@ -14,7 +14,8 @@
             "Simplify: x = 5"
           ]
         },
-        "misconceptionWarning": "Students often apply an operation to only one side of the equation, breaking the balance. Always mirror the operation on both sides."
+        "misconceptionWarning": "Students often apply an operation to only one side of the equation, breaking the balance. Always mirror the operation on both sides.",
+        "keyTerms": ["inverse operation", "both sides", "balance"]
       }
     },
     {
@@ -31,7 +32,8 @@
             "Combine: 3x + 12"
           ]
         },
-        "misconceptionWarning": "Students often multiply only the first term inside the parentheses and forget the second, or mishandle a negative sign out front."
+        "misconceptionWarning": "Students often multiply only the first term inside the parentheses and forget the second, or mishandle a negative sign out front.",
+        "keyTerms": ["distribute", "every term", "multiply"]
       }
     },
     {
@@ -48,7 +50,8 @@
             "Combine: 5x + 4"
           ]
         },
-        "misconceptionWarning": "Students often add the coefficients AND the constants together. Constants and x-terms represent different quantities and can't be merged into one term."
+        "misconceptionWarning": "Students often add the coefficients AND the constants together. Constants and x-terms represent different quantities and can't be merged into one term.",
+        "keyTerms": ["like terms", "coefficient", "variable part"]
       }
     },
     {
@@ -64,7 +67,8 @@
             "Simplify: x = 4"
           ]
         },
-        "misconceptionWarning": "Students often subtract instead of dividing when a coefficient is multiplying the variable, or divide only one side."
+        "misconceptionWarning": "Students often subtract instead of dividing when a coefficient is multiplying the variable, or divide only one side.",
+        "keyTerms": ["inverse operation", "divide", "coefficient"]
       }
     },
     {
@@ -82,7 +86,8 @@
             "x = 4"
           ]
         },
-        "misconceptionWarning": "Students often divide before subtracting the constant, or forget to finish dividing out the coefficient at the end."
+        "misconceptionWarning": "Students often divide before subtracting the constant, or forget to finish dividing out the coefficient at the end.",
+        "keyTerms": ["reverse order", "isolate", "coefficient"]
       }
     },
     {
@@ -100,7 +105,8 @@
             "Divide by 3: x = 3"
           ]
         },
-        "misconceptionWarning": "Students often move a variable term to the other side without changing its sign, or move it from only one side."
+        "misconceptionWarning": "Students often move a variable term to the other side without changing its sign, or move it from only one side.",
+        "keyTerms": ["combine variable terms", "both sides", "isolate"]
       }
     },
     {
@@ -117,7 +123,8 @@
             "Divide by 3: x = 3"
           ]
         },
-        "misconceptionWarning": "Students often solve inside the parentheses first as if it were the whole equation, or distribute to only one term inside."
+        "misconceptionWarning": "Students often solve inside the parentheses first as if it were the whole equation, or distribute to only one term inside.",
+        "keyTerms": ["distribute first", "combine like terms", "parentheses"]
       }
     },
     {
@@ -134,7 +141,8 @@
             "Slope m = -2, y-intercept b = 7"
           ]
         },
-        "misconceptionWarning": "Students often mix up which number is the slope and which is the y-intercept, or forget to flip the sign of a term moved across the equals sign."
+        "misconceptionWarning": "Students often mix up which number is the slope and which is the y-intercept, or forget to flip the sign of a term moved across the equals sign.",
+        "keyTerms": ["slope", "y-intercept", "isolate y"]
       }
     },
     {
@@ -151,7 +159,8 @@
             "Draw a straight line through (0,1) and (1,3)"
           ]
         },
-        "misconceptionWarning": "Students often plot the y-intercept on the x-axis instead of the y-axis, or apply the slope as run/rise instead of rise/run."
+        "misconceptionWarning": "Students often plot the y-intercept on the x-axis instead of the y-axis, or apply the slope as run/rise instead of rise/run.",
+        "keyTerms": ["y-intercept", "rise over run", "slope"]
       }
     },
     {
@@ -167,7 +176,8 @@
             "Divide both sides by -2 and flip the sign: x < -4"
           ]
         },
-        "misconceptionWarning": "Students often forget to flip the inequality sign when dividing by a negative number."
+        "misconceptionWarning": "Students often forget to flip the inequality sign when dividing by a negative number.",
+        "keyTerms": ["flip the sign", "negative", "divide"]
       }
     },
     {
@@ -185,7 +195,8 @@
             "Combine: 2x - 6"
           ]
         },
-        "misconceptionWarning": "If you catch yourself distributing to only one term, stop and multiply the second term separately before combining anything."
+        "misconceptionWarning": "If you catch yourself distributing to only one term, stop and multiply the second term separately before combining anything.",
+        "keyTerms": ["distribute", "every term"]
       }
     },
     {
@@ -202,7 +213,8 @@
             "Simplify: x = 6"
           ]
         },
-        "misconceptionWarning": "If you changed one side but not the other, or moved a term without flipping its sign, that's the exact gap this patches."
+        "misconceptionWarning": "If you changed one side but not the other, or moved a term without flipping its sign, that's the exact gap this patches.",
+        "keyTerms": ["both sides", "balance"]
       }
     },
     {
@@ -220,7 +232,8 @@
             "Next point: (1, 1)"
           ]
         },
-        "misconceptionWarning": "If you moved right first or ignored the negative sign, that's the exact gap this patches."
+        "misconceptionWarning": "If you moved right first or ignored the negative sign, that's the exact gap this patches.",
+        "keyTerms": ["rise over run", "slope"]
       }
     }
   ],

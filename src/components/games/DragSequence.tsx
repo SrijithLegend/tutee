@@ -55,8 +55,8 @@ export default function DragSequence({ question, onComplete }: DragSequenceProps
 
   return (
     <>
-      <p className="mb-1 text-xs uppercase tracking-wide text-white/40">Order the steps</p>
-      <h2 className="mb-4 text-lg font-medium">{question.prompt}</h2>
+      <p className="mb-1 text-xs uppercase tracking-[0.2em] text-muted">Order the steps</p>
+      <h2 className="mb-4 font-serif text-xl italic">{question.prompt}</h2>
       <ExplainPanel reason={question.reason} />
       {!result ? (
         <>
@@ -64,7 +64,7 @@ export default function DragSequence({ question, onComplete }: DragSequenceProps
             {order.map((itemIndex, pos) => (
               <li
                 key={itemIndex}
-                className="flex items-center justify-between rounded border border-white/10 px-3 py-2"
+                className="flex items-center justify-between rounded-sm border border-hairline px-3 py-2"
               >
                 <span className="text-sm">
                   {pos + 1}. {question.items[itemIndex]}
@@ -74,7 +74,7 @@ export default function DragSequence({ question, onComplete }: DragSequenceProps
                     onClick={() => move(pos, -1)}
                     disabled={pos === 0}
                     aria-label="Move up"
-                    className="rounded border border-white/10 px-2 py-0.5 text-xs hover:border-white/30 disabled:opacity-30"
+                    className="rounded-sm border border-hairline px-2 py-0.5 text-xs hover:border-foreground/40 disabled:opacity-30"
                   >
                     ↑
                   </button>
@@ -82,7 +82,7 @@ export default function DragSequence({ question, onComplete }: DragSequenceProps
                     onClick={() => move(pos, 1)}
                     disabled={pos === order.length - 1}
                     aria-label="Move down"
-                    className="rounded border border-white/10 px-2 py-0.5 text-xs hover:border-white/30 disabled:opacity-30"
+                    className="rounded-sm border border-hairline px-2 py-0.5 text-xs hover:border-foreground/40 disabled:opacity-30"
                   >
                     ↓
                   </button>
@@ -92,19 +92,19 @@ export default function DragSequence({ question, onComplete }: DragSequenceProps
           </ol>
           <button
             onClick={submit}
-            className="w-full rounded border border-white/10 px-4 py-2 text-center transition-colors hover:border-white/30 hover:bg-white/5"
+            className="w-full rounded-sm border border-hairline px-4 py-2 text-center text-sm uppercase tracking-wide transition-colors hover:border-foreground/40 hover:bg-black/5"
           >
             Submit order
           </button>
         </>
       ) : (
         <>
-          <p className={`mb-4 text-lg font-medium ${result.correct ? "text-[#2E8B6F]" : "text-[#E09A32]"}`}>
+          <p className={`mb-4 text-lg font-medium ${result.correct ? "text-[#2E8B6F]" : "text-[#b8791f]"}`}>
             {result.correct ? "Correct!" : "Not quite."}
           </p>
           <button
             onClick={close}
-            className="w-full rounded border border-white/10 px-4 py-2 text-center transition-colors hover:border-white/30 hover:bg-white/5"
+            className="w-full rounded-sm border border-hairline px-4 py-2 text-center text-sm uppercase tracking-wide transition-colors hover:border-foreground/40 hover:bg-black/5"
           >
             Continue
           </button>

@@ -7,6 +7,7 @@ import DiagnosticQuiz from "@/components/games/DiagnosticQuiz";
 import McqBattle from "@/components/games/McqBattle";
 import RecallRush from "@/components/games/RecallRush";
 import LessonPanel from "@/components/LessonPanel";
+import TeachBack from "@/components/TeachBack";
 import { DECAY_THRESHOLD, RECALL_RUSH_MIN_DECAYED, explainRecallRush } from "@/lib/scheduler";
 import type { GraphEdge, GraphNode } from "@/lib/path";
 
@@ -18,6 +19,7 @@ interface Graph {
 export default function Home() {
   const [graph, setGraph] = useState<Graph | null>(null);
   const [lessonConceptId, setLessonConceptId] = useState<string | null>(null);
+  const [teachBackConceptId, setTeachBackConceptId] = useState<string | null>(null);
   const [battleConceptId, setBattleConceptId] = useState<string | null>(null);
   const [recallRushConceptIds, setRecallRushConceptIds] = useState<string[] | null>(null);
   const [recallRushDismissed, setRecallRushDismissed] = useState(false);
@@ -51,8 +53,19 @@ export default function Home() {
   }
 
   function closeLesson() {
+    const justLearnedConceptId = lessonConceptId;
     setLessonConceptId(null);
-    refetchGraph();
+    // The protégé effect: right after learning something, explaining it back reinforces it further.
+    setTeachBackConceptId(justLearnedConceptId);
+  }
+
+  function closeTeachBack(updatedGraph: Graph | null) {
+    setTeachBackConceptId(null);
+    if (updatedGraph) {
+      setGraph(updatedGraph);
+    } else {
+      refetchGraph(); // skipped, or nothing matched — still pick up the lesson's own state change
+    }
   }
 
   function closeBattle(updatedGraph: Graph) {
@@ -73,12 +86,17 @@ export default function Home() {
 
   return (
     <div className="flex flex-col flex-1">
-      <header className="flex items-center justify-between border-b border-white/10 px-6 py-4">
-        <h1 className="text-lg font-semibold tracking-tight">tutee</h1>
-        <div className="flex items-center gap-4">
-          <p className="text-sm text-white/40">Mastery decays. So does the graph.</p>
-          {graph && <DevBar onGraphUpdate={handleDevBarGraphUpdate} />}
+      <header className="flex items-center justify-between border-b border-hairline px-6 py-4">
+        <div className="flex items-center gap-3">
+          <span className="flex h-7 w-7 items-center justify-center rounded-md bg-foreground font-serif text-sm italic text-background">
+            t
+          </span>
+          <h1 className="font-serif text-lg italic tracking-tight">tutee</h1>
         </div>
+        <p className="hidden text-xs uppercase tracking-[0.2em] text-muted sm:block">
+          Mastery decays &middot; so does the graph
+        </p>
+        {graph && <DevBar onGraphUpdate={handleDevBarGraphUpdate} />}
       </header>
       <main className="relative flex-1">
         {graph ? (
@@ -96,12 +114,17 @@ export default function Home() {
             {!needsDiagnostic && !recallRushConceptIds && lessonConceptId && (
               <LessonPanel conceptId={lessonConceptId} onClose={closeLesson} />
             )}
-            {!needsDiagnostic && !recallRushConceptIds && !lessonConceptId && battleConceptId && (
-              <McqBattle conceptId={battleConceptId} onComplete={closeBattle} />
+            {!needsDiagnostic && !recallRushConceptIds && !lessonConceptId && teachBackConceptId && (
+              <TeachBack conceptId={teachBackConceptId} onComplete={closeTeachBack} />
             )}
+            {!needsDiagnostic &&
+              !recallRushConceptIds &&
+              !lessonConceptId &&
+              !teachBackConceptId &&
+              battleConceptId && <McqBattle conceptId={battleConceptId} onComplete={closeBattle} />}
           </>
         ) : (
-          <p className="p-6 text-white/40">Loading graph…</p>
+          <p className="p-6 text-muted">Loading graph…</p>
         )}
       </main>
     </div>
