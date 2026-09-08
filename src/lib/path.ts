@@ -6,6 +6,13 @@ import type { Concept } from "@/types/content";
 
 export type ConceptState = "locked" | "learn" | "practice" | "mastered";
 
+export interface PlanetInfo {
+  id: string;
+  name: string;
+  /** Total times the user has ever triggered this misconception (0 = never encountered). */
+  hits: number;
+}
+
 export interface GraphNode {
   id: string;
   name: string;
@@ -13,6 +20,8 @@ export interface GraphNode {
   retrievability: number;
   mastery: number;
   injected: boolean;
+  /** This concept's misconceptions, rendered as orbiting planets. */
+  planets: PlanetInfo[];
 }
 
 export interface GraphEdge {
@@ -41,6 +50,10 @@ const getProgressStmt = db.prepare(
 
 const getInjectedStmt = db.prepare(
   "SELECT concept_id, triggered_by FROM injected_nodes WHERE user_id = ?"
+);
+
+const misconceptionHitsStmt = db.prepare(
+  "SELECT COUNT(*) as n FROM attempts WHERE user_id = ? AND misconception_id = ?"
 );
 
 const isInjectedStmt = db.prepare(
@@ -129,6 +142,13 @@ export function getUserGraph(userId: string): UserGraph {
     retrievability: getRetrievability(userId, c.id),
     mastery: masteryOf(c.id),
     injected: injectedIds.has(c.id),
+    planets: content.misconceptions
+      .filter((m) => m.conceptId === c.id)
+      .map((m) => ({
+        id: m.id,
+        name: m.name,
+        hits: (misconceptionHitsStmt.get(userId, m.id) as { n: number }).n,
+      })),
   }));
 
   const edges: GraphEdge[] = [];

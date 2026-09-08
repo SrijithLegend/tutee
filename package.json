@@ -14,7 +14,7 @@
     "react": "^18.3.0",
     "react-dom": "^18.3.0",
     "ts-fsrs": "^4.1.1",
-    "react-force-graph-2d": "^1.25.5",
+    "three": "^0.169.0",
     "zustand": "^4.5.5"
   },
   "devDependencies": {
@@ -22,6 +22,7 @@
     "@types/node": "^22.5.0",
     "@types/react": "^18",
     "@types/react-dom": "^18",
+    "@types/three": "^0.169.0",
     "eslint": "^8.57.0",
     "eslint-config-next": "^14.2.0",
     "tailwindcss": "^4",

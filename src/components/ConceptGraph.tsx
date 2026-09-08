@@ -1,62 +1,165 @@
 "use client";
 
-import dynamic from "next/dynamic";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
+import * as THREE from "three";
+import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
+import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js";
+import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
+import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass.js";
 import type { GraphEdge, GraphNode } from "@/lib/path";
 
-const ForceGraph2D = dynamic(() => import("react-force-graph-2d"), { ssr: false });
-
-const STATE_COLOR: Record<GraphNode["state"], string> = {
-  locked: "#9AA3B2",
-  learn: "#1A2846",
-  practice: "#E09A32",
-  mastered: "#2E8B6F",
+const STATE_COLOR: Record<GraphNode["state"], number> = {
+  locked: 0x9aa3b2,
+  learn: 0x1a2846,
+  practice: 0xe09a32,
+  mastered: 0x2e8b6f,
 };
 
-const LINK_COLOR_LIT = "#2E8B6F";
-const LINK_COLOR_DIM = "#C9C5BE";
-const GRAPH_BACKGROUND = "#E7E5E1";
-const LABEL_COLOR = "#1A1A1A";
+const EDGE_COLOR_LIT = 0x2e8b6f;
+const EDGE_COLOR_DIM = 0x3a4150;
 
-const TRANSITION_MS = 600;
+const PLANET_COLOR_UNTOUCHED = 0x5b6478;
+const PLANET_COLOR_HIT = 0xe09a32;
+const PLANET_COLOR_CRITICAL = 0xff5a3c;
 
-function hexToRgba(hex: string, alpha: number): string {
-  const n = parseInt(hex.slice(1), 16);
-  const r = (n >> 16) & 255;
-  const g = (n >> 8) & 255;
-  const b = n & 255;
-  return `rgba(${r},${g},${b},${alpha})`;
+const RETRIEVABILITY_EASE_PER_SEC = 2.2; // higher = faster fade/re-glow response
+
+/** Stable pseudo-random in [0,1) from a string id, so layout jitter is deterministic across renders. */
+function hash01(id: string): number {
+  let h = 0;
+  for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) >>> 0;
+  return (h % 10000) / 10000;
 }
 
-/** Eases each node's displayed retrievability toward its real value over TRANSITION_MS, so decay reads as a fade, not a snap. */
-function useAnimatedRetrievability(nodes: GraphNode[]) {
-  const [display, setDisplay] = useState<Map<string, number>>(new Map());
-  const displayRef = useRef(display);
-  displayRef.current = display;
-  const frameRef = useRef<number>(0);
-  const key = nodes.map((n) => `${n.id}:${n.retrievability.toFixed(4)}`).join("|");
+/** Longest-path depth from any root (no-prerequisite) concept, used as radial distance along the spiral. */
+function computeDepths(nodes: GraphNode[], edges: GraphEdge[]): Map<string, number> {
+  const preds = new Map<string, string[]>();
+  for (const n of nodes) preds.set(n.id, []);
+  for (const e of edges) preds.get(e.target)?.push(e.source);
 
-  useEffect(() => {
-    const from = new Map(displayRef.current);
-    const to = new Map(nodes.map((n) => [n.id, n.retrievability]));
-    const start = performance.now();
+  const depth = new Map<string, number>();
+  function dfs(id: string, visiting: Set<string>): number {
+    if (depth.has(id)) return depth.get(id) as number;
+    if (visiting.has(id)) return 0;
+    visiting.add(id);
+    const ps = preds.get(id) ?? [];
+    const d = ps.length === 0 ? 0 : 1 + Math.max(...ps.map((p) => dfs(p, visiting)));
+    depth.set(id, d);
+    return d;
+  }
+  for (const n of nodes) dfs(n.id, new Set());
+  return depth;
+}
 
-    function tick(t: number) {
-      const progress = Math.min(1, (t - start) / TRANSITION_MS);
-      const next = new Map<string, number>();
-      for (const [id, target] of to) {
-        const startVal = from.get(id) ?? target;
-        next.set(id, startVal + (target - startVal) * progress);
-      }
-      setDisplay(next);
-      if (progress < 1) frameRef.current = requestAnimationFrame(tick);
-    }
-    frameRef.current = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(frameRef.current);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [key]);
+/** Position for each concept along a 2-armed logarithmic spiral, like a Milky Way viewed from above. */
+function computeGalaxyPositions(nodes: GraphNode[], edges: GraphEdge[]): Map<string, THREE.Vector3> {
+  const depth = computeDepths(nodes, edges);
+  const maxDepth = Math.max(1, ...Array.from(depth.values()));
+  const positions = new Map<string, THREE.Vector3>();
 
-  return display;
+  for (const n of nodes) {
+    const t = (depth.get(n.id) ?? 0) / maxDepth;
+    const jitter = hash01(n.id);
+    const arm = hash01(n.id + "arm") < 0.5 ? 0 : 1;
+    const radius = 28 + t * 130 + jitter * 14;
+    const angle = t * Math.PI * 2.4 + arm * Math.PI + jitter * 0.6;
+    const y = (hash01(n.id + "y") - 0.5) * 10 * (1 - t * 0.4);
+    positions.set(n.id, new THREE.Vector3(radius * Math.cos(angle), y, radius * Math.sin(angle)));
+  }
+  return positions;
+}
+
+function makeLabelSprite(text: string): THREE.Sprite {
+  const canvas = document.createElement("canvas");
+  const ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
+  const fontSize = 40;
+  ctx.font = `${fontSize}px sans-serif`;
+  const width = Math.ceil(ctx.measureText(text).width) + 24;
+  const height = fontSize + 20;
+  canvas.width = width;
+  canvas.height = height;
+  ctx.font = `${fontSize}px sans-serif`;
+  ctx.textBaseline = "middle";
+  ctx.fillStyle = "#EAF0FF";
+  ctx.shadowColor = "rgba(0,0,0,0.9)";
+  ctx.shadowBlur = 6;
+  ctx.fillText(text, 12, height / 2);
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.minFilter = THREE.LinearFilter;
+  const material = new THREE.SpriteMaterial({ map: texture, transparent: true, depthWrite: false });
+  const sprite = new THREE.Sprite(material);
+  sprite.scale.set(width / 14, height / 14, 1);
+  return sprite;
+}
+
+/** A soft round radial-gradient sprite, so background stars render as glowing points instead of hard squares. */
+function makeGlowTexture(): THREE.Texture {
+  const size = 64;
+  const canvas = document.createElement("canvas");
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
+  const gradient = ctx.createRadialGradient(size / 2, size / 2, 0, size / 2, size / 2, size / 2);
+  gradient.addColorStop(0, "rgba(255,255,255,1)");
+  gradient.addColorStop(0.4, "rgba(255,255,255,0.6)");
+  gradient.addColorStop(1, "rgba(255,255,255,0)");
+  ctx.fillStyle = gradient;
+  ctx.fillRect(0, 0, size, size);
+  return new THREE.CanvasTexture(canvas);
+}
+
+function makeStarfield(
+  count: number,
+  radiusMin: number,
+  radiusMax: number,
+  size: number,
+  color: number,
+  glowTexture: THREE.Texture
+): THREE.Points {
+  const positions = new Float32Array(count * 3);
+  for (let i = 0; i < count; i++) {
+    const r = radiusMin + Math.random() * (radiusMax - radiusMin);
+    const theta = Math.random() * Math.PI * 2;
+    const phi = Math.acos(2 * Math.random() - 1);
+    positions[i * 3] = r * Math.sin(phi) * Math.cos(theta);
+    positions[i * 3 + 1] = r * Math.cos(phi) * 0.35;
+    positions[i * 3 + 2] = r * Math.sin(phi) * Math.sin(theta);
+  }
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
+  const material = new THREE.PointsMaterial({
+    color,
+    size,
+    map: glowTexture,
+    sizeAttenuation: true,
+    transparent: true,
+    opacity: 0.9,
+    depthWrite: false,
+    blending: THREE.AdditiveBlending,
+  });
+  return new THREE.Points(geometry, material);
+}
+
+interface StarEntry {
+  conceptId: string;
+  mesh: THREE.Mesh;
+  material: THREE.MeshStandardMaterial;
+  light: THREE.PointLight;
+  displayR: number; // eased retrievability, drives glow
+  planetGroup: THREE.Group;
+  planets: {
+    id: string;
+    mesh: THREE.Mesh;
+    material: THREE.MeshStandardMaterial;
+    radius: number;
+    speed: number;
+    angle: number;
+  }[];
+}
+
+function planetColorFor(hits: number): number {
+  return hits >= 3 ? PLANET_COLOR_CRITICAL : hits >= 1 ? PLANET_COLOR_HIT : PLANET_COLOR_UNTOUCHED;
 }
 
 interface ConceptGraphProps {
@@ -66,80 +169,300 @@ interface ConceptGraphProps {
 }
 
 export default function ConceptGraph({ nodes, edges, onNodeClick }: ConceptGraphProps) {
-  const displayRetrievability = useAnimatedRetrievability(nodes);
-  const [size, setSize] = useState({ width: 800, height: 600 });
   const containerRef = useRef<HTMLDivElement>(null);
+  const nodesRef = useRef(nodes);
+  nodesRef.current = nodes;
+  const onNodeClickRef = useRef(onNodeClick);
+  onNodeClickRef.current = onNodeClick;
+  const edgesRef = useRef(edges);
+  edgesRef.current = edges;
 
+  // One-time scene setup; node/edge *data* changes are read live from the refs in the animation loop.
   useEffect(() => {
-    const el = containerRef.current;
-    if (!el) return;
-    const observer = new ResizeObserver(([entry]) => {
-      const { width, height } = entry.contentRect;
-      setSize({ width, height });
+    const container = containerRef.current;
+    if (!container) return;
+
+    const scene = new THREE.Scene();
+    scene.fog = new THREE.FogExp2(0x05060a, 0.0016);
+
+    const camera = new THREE.PerspectiveCamera(55, container.clientWidth / container.clientHeight, 0.1, 4000);
+    camera.position.set(0, 140, 260);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setSize(container.clientWidth, container.clientHeight);
+    renderer.setClearColor(0x05060a, 1);
+    container.appendChild(renderer.domElement);
+
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.07;
+    controls.minDistance = 40;
+    controls.maxDistance = 900;
+    controls.target.set(0, 0, 0);
+
+    scene.add(new THREE.AmbientLight(0x1b2536, 0.35));
+
+    const glowTexture = makeGlowTexture();
+    const farStars = makeStarfield(5000, 800, 2600, 3.2, 0xffffff, glowTexture);
+    const nearStars = makeStarfield(1200, 300, 900, 2.2, 0xbfd3ff, glowTexture);
+    scene.add(farStars, nearStars);
+
+    const composer = new EffectComposer(renderer);
+    composer.addPass(new RenderPass(scene, camera));
+    // Higher threshold so dim (decayed/locked) stars keep their true state color instead of
+    // blowing out to white — only genuinely bright, well-retained stars actually bloom.
+    const bloom = new UnrealBloomPass(
+      new THREE.Vector2(container.clientWidth, container.clientHeight),
+      0.9,
+      0.6,
+      0.32
+    );
+    composer.addPass(bloom);
+
+    const galaxyGroup = new THREE.Group();
+    scene.add(galaxyGroup);
+    const edgeLines: { line: THREE.Line; edge: GraphEdge }[] = [];
+    const stars = new Map<string, StarEntry>();
+    let builtSignature = "";
+
+    // Shared unit geometry, scaled per-instance — sizes (mastery/hits) are updated live in the
+    // animation loop via mesh.scale, so this never needs to be recreated on rebuild.
+    const unitStarGeometry = new THREE.SphereGeometry(1, 24, 24);
+    const unitPlanetGeometry = new THREE.SphereGeometry(1, 12, 12);
+
+    function disposeStars() {
+      for (const s of stars.values()) {
+        galaxyGroup.remove(s.mesh, s.light, s.planetGroup);
+        s.material.dispose();
+        for (const p of s.planets) {
+          p.material.dispose();
+        }
+      }
+      stars.clear();
+      for (const { line } of edgeLines) {
+        galaxyGroup.remove(line);
+        line.geometry.dispose();
+        (line.material as THREE.Material).dispose();
+      }
+      edgeLines.length = 0;
+    }
+
+    function build(currentNodes: GraphNode[], currentEdges: GraphEdge[]) {
+      disposeStars();
+      const positions = computeGalaxyPositions(currentNodes, currentEdges);
+
+      for (const n of currentNodes) {
+        const pos = positions.get(n.id) ?? new THREE.Vector3();
+        const color = STATE_COLOR[n.state];
+        const starRadius = 3 + n.mastery * 3.2;
+
+        const material = new THREE.MeshStandardMaterial({
+          color,
+          emissive: color,
+          emissiveIntensity: 0.08,
+          roughness: 0.4,
+          metalness: 0.1,
+        });
+        const mesh = new THREE.Mesh(unitStarGeometry, material);
+        mesh.scale.setScalar(starRadius);
+        mesh.position.copy(pos);
+        mesh.userData.conceptId = n.id;
+        galaxyGroup.add(mesh);
+
+        const light = new THREE.PointLight(color, 0.6, 90, 2);
+        light.position.copy(pos);
+        galaxyGroup.add(light);
+
+        const label = makeLabelSprite(n.name);
+        label.position.set(pos.x, pos.y + starRadius + 5, pos.z);
+        galaxyGroup.add(label);
+
+        const planetGroup = new THREE.Group();
+        planetGroup.position.copy(pos);
+        galaxyGroup.add(planetGroup);
+
+        const planets = n.planets.map((planet, i) => {
+          const orbitRadius = starRadius + 6 + i * 4.5;
+          const pMat = new THREE.MeshStandardMaterial({ color: planetColorFor(planet.hits), roughness: 0.8 });
+          const pMesh = new THREE.Mesh(unitPlanetGeometry, pMat);
+          pMesh.scale.setScalar(0.9 + Math.min(planet.hits, 3) * 0.25);
+          planetGroup.add(pMesh);
+
+          if (planet.hits >= 3) {
+            const ringGeom = new THREE.RingGeometry(1.6, 2.0, 24);
+            const ringMat = new THREE.MeshBasicMaterial({
+              color: PLANET_COLOR_CRITICAL,
+              side: THREE.DoubleSide,
+              transparent: true,
+              opacity: 0.5,
+            });
+            const ring = new THREE.Mesh(ringGeom, ringMat);
+            ring.rotation.x = Math.PI / 2.4;
+            pMesh.add(ring);
+          }
+
+          // Faint orbit path for legibility.
+          const orbitPoints: THREE.Vector3[] = [];
+          for (let a = 0; a <= 64; a++) {
+            const t = (a / 64) * Math.PI * 2;
+            orbitPoints.push(new THREE.Vector3(orbitRadius * Math.cos(t), 0, orbitRadius * Math.sin(t)));
+          }
+          const orbitGeom = new THREE.BufferGeometry().setFromPoints(orbitPoints);
+          const orbitMat = new THREE.LineBasicMaterial({ color: 0x33415c, transparent: true, opacity: 0.35 });
+          planetGroup.add(new THREE.Line(orbitGeom, orbitMat));
+
+          return {
+            id: planet.id,
+            mesh: pMesh,
+            material: pMat,
+            radius: orbitRadius,
+            speed: 0.25 + hash01(planet.id) * 0.5,
+            angle: hash01(planet.id + "a") * Math.PI * 2,
+          };
+        });
+
+        stars.set(n.id, { conceptId: n.id, mesh, material, light, displayR: n.retrievability, planetGroup, planets });
+      }
+
+      for (const e of currentEdges) {
+        const a = positions.get(e.source);
+        const b = positions.get(e.target);
+        if (!a || !b) continue;
+        const geometry = new THREE.BufferGeometry().setFromPoints([a, b]);
+        const material = new THREE.LineBasicMaterial({
+          color: e.unlocked ? EDGE_COLOR_LIT : EDGE_COLOR_DIM,
+          transparent: true,
+          opacity: e.unlocked ? 0.8 : 0.35,
+        });
+        const line = new THREE.Line(geometry, material);
+        galaxyGroup.add(line);
+        edgeLines.push({ line, edge: e });
+      }
+
+      builtSignature = signatureOf(currentNodes, currentEdges);
+    }
+
+    function signatureOf(list: GraphNode[], edgeList: GraphEdge[]): string {
+      return (
+        list
+          .map((n) => n.id)
+          .sort()
+          .join(",") +
+        "|" +
+        edgeList.map((e) => `${e.source}>${e.target}:${e.unlocked}`).join(",")
+      );
+    }
+
+    build(nodesRef.current, edgesRef.current);
+
+    // ---- click vs. drag detection for star selection ----
+    const raycaster = new THREE.Raycaster();
+    const pointerNdc = new THREE.Vector2();
+    let downPos: { x: number; y: number } | null = null;
+
+    function onPointerDown(ev: PointerEvent) {
+      downPos = { x: ev.clientX, y: ev.clientY };
+    }
+    function onPointerUp(ev: PointerEvent) {
+      if (!downPos) return;
+      const moved = Math.hypot(ev.clientX - downPos.x, ev.clientY - downPos.y);
+      downPos = null;
+      if (moved > 6) return; // treat as a drag/orbit, not a click
+
+      const rect = renderer.domElement.getBoundingClientRect();
+      pointerNdc.x = ((ev.clientX - rect.left) / rect.width) * 2 - 1;
+      pointerNdc.y = -((ev.clientY - rect.top) / rect.height) * 2 + 1;
+      raycaster.setFromCamera(pointerNdc, camera);
+      const meshes = Array.from(stars.values()).map((s) => s.mesh);
+      const hit = raycaster.intersectObjects(meshes, false)[0];
+      if (!hit) return;
+      const conceptId = hit.object.userData.conceptId as string;
+      const node = nodesRef.current.find((n) => n.id === conceptId);
+      if (node) onNodeClickRef.current?.(node);
+    }
+    renderer.domElement.addEventListener("pointerdown", onPointerDown);
+    renderer.domElement.addEventListener("pointerup", onPointerUp);
+
+    // ---- resize ----
+    const resizeObserver = new ResizeObserver(() => {
+      const w = container.clientWidth;
+      const h = container.clientHeight;
+      if (w === 0 || h === 0) return;
+      camera.aspect = w / h;
+      camera.updateProjectionMatrix();
+      renderer.setSize(w, h);
+      composer.setSize(w, h);
     });
-    observer.observe(el);
-    return () => observer.disconnect();
+    resizeObserver.observe(container);
+
+    // ---- animation loop ----
+    let raf = 0;
+    let last = performance.now();
+    function tick(now: number) {
+      raf = requestAnimationFrame(tick);
+      const dt = Math.min(0.05, (now - last) / 1000);
+      last = now;
+
+      // Sync star/planet objects if the node/edge set structurally changed (e.g. remedial injection).
+      const sig = signatureOf(nodesRef.current, edgesRef.current);
+      if (sig !== builtSignature) build(nodesRef.current, edgesRef.current);
+
+      const latest = new Map(nodesRef.current.map((n) => [n.id, n]));
+      for (const s of stars.values()) {
+        const n = latest.get(s.conceptId);
+        if (!n) continue;
+        const target = n.retrievability;
+        s.displayR += (target - s.displayR) * Math.min(1, RETRIEVABILITY_EASE_PER_SEC * dt);
+        s.material.emissiveIntensity = 0.08 + 0.95 * s.displayR;
+        s.light.intensity = 0.12 + 1.3 * s.displayR;
+
+        // State/mastery can change (lesson learned, question answered) without the node SET
+        // changing, so color and size are refreshed live here rather than only at build time.
+        const stateColor = STATE_COLOR[n.state];
+        s.material.color.setHex(stateColor);
+        s.material.emissive.setHex(stateColor);
+        s.light.color.setHex(stateColor);
+        s.mesh.scale.setScalar(3 + n.mastery * 3.2);
+
+        const planetById = new Map(n.planets.map((p) => [p.id, p]));
+        for (const p of s.planets) {
+          p.angle += p.speed * dt;
+          p.mesh.position.set(p.radius * Math.cos(p.angle), 0, p.radius * Math.sin(p.angle));
+
+          const latestPlanet = planetById.get(p.id);
+          if (latestPlanet) {
+            p.material.color.setHex(planetColorFor(latestPlanet.hits));
+            p.mesh.scale.setScalar(0.9 + Math.min(latestPlanet.hits, 3) * 0.25);
+          }
+        }
+      }
+
+      galaxyGroup.rotation.y += dt * 0.01;
+      controls.update();
+      composer.render();
+    }
+    raf = requestAnimationFrame(tick);
+
+    return () => {
+      cancelAnimationFrame(raf);
+      resizeObserver.disconnect();
+      renderer.domElement.removeEventListener("pointerdown", onPointerDown);
+      renderer.domElement.removeEventListener("pointerup", onPointerUp);
+      disposeStars();
+      unitStarGeometry.dispose();
+      unitPlanetGeometry.dispose();
+      glowTexture.dispose();
+      farStars.geometry.dispose();
+      (farStars.material as THREE.Material).dispose();
+      nearStars.geometry.dispose();
+      (nearStars.material as THREE.Material).dispose();
+      controls.dispose();
+      renderer.dispose();
+      container.removeChild(renderer.domElement);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const graphData = {
-    nodes: nodes.map((n) => ({ ...n })),
-    links: edges.map((e) => ({ ...e })),
-  };
-
-  return (
-    <div ref={containerRef} className="absolute inset-0">
-      <ForceGraph2D
-        graphData={graphData}
-        width={size.width}
-        height={size.height}
-        backgroundColor={GRAPH_BACKGROUND}
-        nodeId="id"
-        nodeRelSize={4}
-        nodeVal={(node) => {
-          // nodeCanvasObjectMode="replace" only swaps the *visible* draw — the invisible
-          // hit-detection layer still sizes itself from nodeVal/nodeRelSize, so this must
-          // stay in sync with the radius drawn in nodeCanvasObject below or clicks miss.
-          const n = node as unknown as GraphNode;
-          const radius = 6 + n.mastery * 5;
-          return (radius / 4) ** 2;
-        }}
-        d3AlphaDecay={0.02}
-        d3VelocityDecay={0.3}
-        nodeCanvasObjectMode={() => "replace"}
-        nodeCanvasObject={(node, ctx, globalScale) => {
-          const n = node as unknown as GraphNode & { x?: number; y?: number };
-          if (typeof n.x !== "number" || typeof n.y !== "number") return;
-          const r = displayRetrievability.get(n.id) ?? n.retrievability;
-          const color = STATE_COLOR[n.state];
-          const radius = 6 + n.mastery * 5;
-
-          // On a light backdrop a radial gradient-to-transparent glow has nothing dark to
-          // glow into, so retrievability instead reads as opacity (faded = forgotten, full
-          // = fresh) plus a soft colored shadow standing in for the glow halo.
-          ctx.save();
-          ctx.shadowColor = hexToRgba(color, 0.55 * r);
-          ctx.shadowBlur = 16 * r;
-          ctx.fillStyle = hexToRgba(color, 0.3 + 0.7 * r);
-          ctx.beginPath();
-          ctx.arc(n.x, n.y, radius, 0, 2 * Math.PI);
-          ctx.fill();
-          ctx.restore();
-
-          const fontSize = 11 / globalScale;
-          ctx.font = `${fontSize}px sans-serif`;
-          ctx.textAlign = "center";
-          ctx.textBaseline = "top";
-          ctx.fillStyle = LABEL_COLOR;
-          ctx.fillText(n.name, n.x, n.y + radius + 3);
-        }}
-        nodeLabel={(node) => {
-          const n = node as unknown as GraphNode;
-          return `${n.name} — ${Math.round(n.retrievability * 100)}% retrievability`;
-        }}
-        linkColor={(link) => ((link as unknown as GraphEdge).unlocked ? LINK_COLOR_LIT : LINK_COLOR_DIM)}
-        linkWidth={(link) => ((link as unknown as GraphEdge).unlocked ? 2.5 : 1)}
-        onNodeClick={(node) => onNodeClick?.(node as unknown as GraphNode)}
-      />
-    </div>
-  );
+  return <div ref={containerRef} className="absolute inset-0" />;
 }
