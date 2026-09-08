@@ -3,7 +3,7 @@ import { now } from "./clock";
 import { getContent } from "./content";
 import { gradeAnswer, Rating, type Grade } from "./memory";
 import { injectRemedialNode } from "./path";
-import type { McqQuestion } from "@/types/content";
+import type { McqQuestion, Question, SequenceQuestion } from "@/types/content";
 
 /** Deterministic sample spanning the DAG (roots + mid-tier), reused every diagnostic run for demo reliability. */
 export const DIAGNOSTIC_QUESTION_IDS = ["q-iv-001", "q-dr-001", "q-clt-001", "q-tse-001", "q-sif-001"];
@@ -67,7 +67,42 @@ function ratingFor(correct: boolean, responseMs: number | undefined, medianMs: n
   return Rating.Good;
 }
 
-/** Records one graded MCQ attempt: logs it, updates mastery (EWMA), and grades the FSRS card. */
+/** Shared grading core: logs the attempt, updates mastery (EWMA), grades the FSRS card, and checks for a 3rd strike. */
+function applyGradedAttempt(
+  userId: string,
+  questionId: string,
+  conceptId: string,
+  correct: boolean,
+  misconceptionId: string | null,
+  responseMs?: number
+): { strikeCount: number | null; injected: boolean } {
+  const median = medianResponseMs(userId, conceptId);
+  const rating = ratingFor(correct, responseMs, median);
+
+  insertAttemptStmt.run(
+    userId,
+    questionId,
+    conceptId,
+    correct ? 1 : 0,
+    misconceptionId,
+    responseMs ?? null,
+    now(userId).toISOString()
+  );
+
+  const existing = getProgressRowStmt.get(userId, conceptId) as ProgressRow | undefined;
+  const nextMastery = 0.7 * (existing?.mastery ?? 0) + 0.3 * (correct ? 1 : 0);
+  upsertProgressStmt.run(userId, conceptId, existing?.learned ?? 0, nextMastery);
+
+  gradeAnswer(userId, conceptId, rating);
+
+  if (correct || !misconceptionId) return { strikeCount: null, injected: false };
+
+  const strikeCount = countRecentStrikes(userId, misconceptionId);
+  const injected = strikeCount >= 3 && injectRemedialNode(userId, misconceptionId);
+  return { strikeCount, injected };
+}
+
+/** Records one graded MCQ attempt. */
 export function recordAnswer(
   userId: string,
   question: McqQuestion,
@@ -78,48 +113,67 @@ export function recordAnswer(
   if (!option) throw new Error(`Unknown option "${optionId}" for question "${question.id}"`);
   const correct = option.correct;
 
-  const median = medianResponseMs(userId, question.conceptId);
-  const rating = ratingFor(correct, responseMs, median);
-
-  insertAttemptStmt.run(
+  const { strikeCount, injected } = applyGradedAttempt(
     userId,
     question.id,
     question.conceptId,
-    correct ? 1 : 0,
+    correct,
     option.misconceptionId,
-    responseMs ?? null,
-    now(userId).toISOString()
+    responseMs
   );
-
-  const existing = getProgressRowStmt.get(userId, question.conceptId) as ProgressRow | undefined;
-  const nextMastery = 0.7 * (existing?.mastery ?? 0) + 0.3 * (correct ? 1 : 0);
-  upsertProgressStmt.run(userId, question.conceptId, existing?.learned ?? 0, nextMastery);
-
-  gradeAnswer(userId, question.conceptId, rating);
-
-  if (correct || !option.misconceptionId) {
-    return { correct, misconceptionId: option.misconceptionId, strikeCount: null, injected: false };
-  }
-
-  const strikeCount = countRecentStrikes(userId, option.misconceptionId);
-  const injected = strikeCount >= 3 && injectRemedialNode(userId, option.misconceptionId);
   return { correct, misconceptionId: option.misconceptionId, strikeCount, injected };
 }
 
-export interface PublicQuestion {
-  id: string;
-  conceptId: string;
-  prompt: string;
-  options: { id: string; text: string }[];
+export interface SequenceAnswerResult {
+  correct: boolean;
 }
 
-/** Strips the answer key (correct/misconceptionId) before a question goes to the client. */
-function toPublicQuestion(q: McqQuestion): PublicQuestion {
+/** Records one graded sequence attempt. Ordering questions carry no misconception tagging, so strikes never apply. */
+export function recordSequenceAnswer(
+  userId: string,
+  question: SequenceQuestion,
+  submittedOrder: number[],
+  responseMs?: number
+): SequenceAnswerResult {
+  const correct =
+    submittedOrder.length === question.correctOrder.length &&
+    submittedOrder.every((v, i) => v === question.correctOrder[i]);
+  applyGradedAttempt(userId, question.id, question.conceptId, correct, null, responseMs);
+  return { correct };
+}
+
+export type PublicQuestion =
+  | { gameType: "mcq"; id: string; conceptId: string; prompt: string; options: { id: string; text: string }[] }
+  | { gameType: "sequence"; id: string; conceptId: string; prompt: string; items: string[]; itemOriginalIndices: number[] };
+
+function shuffled(indices: number[]): number[] {
+  const copy = [...indices];
+  for (let i = copy.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [copy[i], copy[j]] = [copy[j], copy[i]];
+  }
+  return copy;
+}
+
+/** Strips the answer key before a question goes to the client. Sequence items are shuffled here — the content stores them in correct order. */
+function toPublicQuestion(q: Question): PublicQuestion {
+  if (q.gameType === "mcq") {
+    return {
+      gameType: "mcq",
+      id: q.id,
+      conceptId: q.conceptId,
+      prompt: q.prompt,
+      options: q.options.map((o) => ({ id: o.id, text: o.text })),
+    };
+  }
+  const itemOriginalIndices = shuffled(q.items.map((_, i) => i));
   return {
+    gameType: "sequence",
     id: q.id,
     conceptId: q.conceptId,
     prompt: q.prompt,
-    options: q.options.map((o) => ({ id: o.id, text: o.text })),
+    items: itemOriginalIndices.map((i) => q.items[i]),
+    itemOriginalIndices,
   };
 }
 
@@ -133,13 +187,11 @@ const seenQuestionIdsStmt = db.prepare(
   "SELECT DISTINCT question_id FROM attempts WHERE user_id = ? AND concept_id = ?"
 );
 
-/** Picks the next question for a concept: the first one this user hasn't attempted yet, cycling back once all have been seen. */
+/** Picks the next question for a concept (either game type): the first one this user hasn't attempted yet, cycling back once all have been seen. */
 export function selectQuestion(userId: string, conceptId: string): PublicQuestion {
   const content = getContent();
-  const candidates = content.questions.filter(
-    (q): q is McqQuestion => q.gameType === "mcq" && q.conceptId === conceptId
-  );
-  if (candidates.length === 0) throw new Error(`No MCQ questions for concept "${conceptId}"`);
+  const candidates = content.questions.filter((q) => q.conceptId === conceptId);
+  if (candidates.length === 0) throw new Error(`No questions for concept "${conceptId}"`);
 
   const seenIds = new Set(
     (seenQuestionIdsStmt.all(userId, conceptId) as { question_id: string }[]).map((r) => r.question_id)

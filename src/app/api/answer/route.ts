@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getContent } from "@/lib/content";
-import { recordAnswer, selectQuestion } from "@/lib/diagnosis";
+import { recordAnswer, recordSequenceAnswer, selectQuestion } from "@/lib/diagnosis";
 import { getConceptStatus, getUserGraph } from "@/lib/path";
 import { explainChallenge } from "@/lib/scheduler";
 import { DEMO_USER_ID } from "@/lib/user";
@@ -23,16 +23,38 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
-  const body = (await request.json()) as { questionId?: string; optionId?: string; responseMs?: number };
-  if (!body.questionId || !body.optionId) {
-    return NextResponse.json({ error: "questionId and optionId are required" }, { status: 400 });
+  const body = (await request.json()) as {
+    questionId?: string;
+    optionId?: string;
+    order?: number[];
+    responseMs?: number;
+  };
+  if (!body.questionId) {
+    return NextResponse.json({ error: "questionId is required" }, { status: 400 });
   }
 
   const question = getContent().questions.find((q) => q.id === body.questionId);
-  if (!question || question.gameType !== "mcq") {
+  if (!question) {
     return NextResponse.json({ error: "Unknown question" }, { status: 404 });
   }
 
-  const result = recordAnswer(DEMO_USER_ID, question, body.optionId, body.responseMs);
-  return NextResponse.json({ ...result, graph: getUserGraph(DEMO_USER_ID) });
+  if (question.gameType === "mcq") {
+    if (!body.optionId) {
+      return NextResponse.json({ error: "optionId is required for an mcq question" }, { status: 400 });
+    }
+    const result = recordAnswer(DEMO_USER_ID, question, body.optionId, body.responseMs);
+    return NextResponse.json({ ...result, graph: getUserGraph(DEMO_USER_ID) });
+  }
+
+  if (!Array.isArray(body.order)) {
+    return NextResponse.json({ error: "order is required for a sequence question" }, { status: 400 });
+  }
+  const result = recordSequenceAnswer(DEMO_USER_ID, question, body.order, body.responseMs);
+  return NextResponse.json({
+    ...result,
+    misconceptionId: null,
+    strikeCount: null,
+    injected: false,
+    graph: getUserGraph(DEMO_USER_ID),
+  });
 }

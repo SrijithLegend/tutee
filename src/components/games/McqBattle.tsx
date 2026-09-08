@@ -2,15 +2,11 @@
 
 import { useEffect, useState } from "react";
 import ExplainPanel from "@/components/ExplainPanel";
+import DragSequence from "@/components/games/DragSequence";
 import type { GraphEdge, GraphNode } from "@/lib/path";
+import type { PublicQuestion } from "@/lib/diagnosis";
 
-interface Question {
-  id: string;
-  conceptId: string;
-  prompt: string;
-  options: { id: string; text: string }[];
-  reason: string;
-}
+type QuestionView = PublicQuestion & { reason: string };
 
 interface Graph {
   nodes: GraphNode[];
@@ -29,14 +25,14 @@ interface McqBattleProps {
 }
 
 export default function McqBattle({ conceptId, onComplete }: McqBattleProps) {
-  const [question, setQuestion] = useState<Question | null>(null);
+  const [question, setQuestion] = useState<QuestionView | null>(null);
   const [questionStart, setQuestionStart] = useState(0);
   const [result, setResult] = useState<AnswerResponse | null>(null);
 
   useEffect(() => {
     fetch(`/api/answer?conceptId=${encodeURIComponent(conceptId)}`)
       .then((r) => r.json())
-      .then((q: Question) => {
+      .then((q: QuestionView) => {
         setQuestion(q);
         setQuestionStart(Date.now());
       });
@@ -63,6 +59,8 @@ export default function McqBattle({ conceptId, onComplete }: McqBattleProps) {
       <div className="w-full max-w-lg rounded-lg border border-white/10 bg-[#11151f] p-6">
         {!question ? (
           <p className="text-white/60">Loading question…</p>
+        ) : question.gameType === "sequence" ? (
+          <DragSequence question={question} onComplete={onComplete} />
         ) : !result ? (
           <>
             <p className="mb-1 text-xs uppercase tracking-wide text-white/40">MCQ Battle</p>
@@ -82,9 +80,7 @@ export default function McqBattle({ conceptId, onComplete }: McqBattleProps) {
           </>
         ) : (
           <>
-            <p
-              className={`mb-4 text-lg font-medium ${result.correct ? "text-[#2E8B6F]" : "text-[#E09A32]"}`}
-            >
+            <p className={`mb-4 text-lg font-medium ${result.correct ? "text-[#2E8B6F]" : "text-[#E09A32]"}`}>
               {result.correct ? "Correct!" : "Not quite."}
             </p>
             <button

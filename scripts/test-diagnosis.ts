@@ -19,6 +19,8 @@ reset();
 const view = getDiagnosticQuestions();
 assert.equal(view.length, DIAGNOSTIC_QUESTION_IDS.length, "5 sampled questions");
 for (const q of view) {
+  assert.equal(q.gameType, "mcq", "all 5 diagnostic questions are mcq");
+  if (q.gameType !== "mcq") continue;
   for (const opt of q.options) {
     assert.ok(!("correct" in opt), `option ${opt.id} leaks 'correct'`);
     assert.ok(!("misconceptionId" in opt), `option ${opt.id} leaks 'misconceptionId'`);

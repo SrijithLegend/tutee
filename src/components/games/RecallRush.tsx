@@ -2,14 +2,11 @@
 
 import { useEffect, useRef, useState } from "react";
 import ExplainPanel from "@/components/ExplainPanel";
+import DragSequence from "@/components/games/DragSequence";
 import type { GraphEdge, GraphNode } from "@/lib/path";
+import type { PublicQuestion } from "@/lib/diagnosis";
 
-interface Question {
-  id: string;
-  conceptId: string;
-  prompt: string;
-  options: { id: string; text: string }[];
-}
+type QuestionView = PublicQuestion & { reason: string };
 
 interface Graph {
   nodes: GraphNode[];
@@ -32,16 +29,21 @@ const ROUND_SECONDS = 45;
 
 export default function RecallRush({ conceptIds, reason, onGraphUpdate, onComplete }: RecallRushProps) {
   const [index, setIndex] = useState(0);
-  const [question, setQuestion] = useState<Question | null>(null);
+  const [question, setQuestion] = useState<QuestionView | null>(null);
   const [questionStart, setQuestionStart] = useState(0);
-  const [secondsLeft, setSecondsLeft] = useState(ROUND_SECONDS);
   const [feedback, setFeedback] = useState<"correct" | "incorrect" | null>(null);
+  const [secondsLeft, setSecondsLeft] = useState(ROUND_SECONDS);
   const finishedRef = useRef(false);
 
   function finish() {
     if (finishedRef.current) return;
     finishedRef.current = true;
     onComplete();
+  }
+
+  function advance(graph: Graph) {
+    onGraphUpdate(graph); // re-glow immediately, mid-round
+    setIndex((i) => i + 1);
   }
 
   useEffect(() => {
@@ -66,7 +68,7 @@ export default function RecallRush({ conceptIds, reason, onGraphUpdate, onComple
     }
     fetch(`/api/answer?conceptId=${encodeURIComponent(conceptIds[index])}`)
       .then((r) => r.json())
-      .then((q: Question) => {
+      .then((q: QuestionView) => {
         setQuestion(q);
         setQuestionStart(Date.now());
         setFeedback(null);
@@ -84,7 +86,7 @@ export default function RecallRush({ conceptIds, reason, onGraphUpdate, onComple
     })
       .then((r) => r.json())
       .then((result: AnswerResponse) => {
-        onGraphUpdate(result.graph); // re-glow immediately, mid-round
+        onGraphUpdate(result.graph);
         setFeedback(result.correct ? "correct" : "incorrect");
         setTimeout(() => setIndex((i) => i + 1), 700);
       });
@@ -102,6 +104,8 @@ export default function RecallRush({ conceptIds, reason, onGraphUpdate, onComple
         <ExplainPanel reason={reason} />
         {!question ? (
           <p className="text-white/60">Loading…</p>
+        ) : question.gameType === "sequence" ? (
+          <DragSequence question={question} onComplete={advance} />
         ) : feedback ? (
           <p className={`text-lg font-medium ${feedback === "correct" ? "text-[#2E8B6F]" : "text-[#E09A32]"}`}>
             {feedback === "correct" ? "Correct!" : "Not quite."}
