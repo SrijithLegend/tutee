@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import ExplainPanel from "@/components/ExplainPanel";
 
-interface Lesson {
+export interface Lesson {
   id: string;
   name: string;
   explanation: string;
@@ -16,17 +16,28 @@ interface Lesson {
 interface LessonPanelProps {
   conceptId: string;
   onClose: () => void;
+  /** Fetched ahead of mount (e.g. during the star's zoom-in) so the panel opens already populated. */
+  initialData?: Lesson | null;
 }
 
-export default function LessonPanel({ conceptId, onClose }: LessonPanelProps) {
-  const [lesson, setLesson] = useState<Lesson | null>(null);
+export default function LessonPanel({ conceptId, onClose, initialData = null }: LessonPanelProps) {
+  const [lesson, setLesson] = useState<Lesson | null>(initialData);
 
   useEffect(() => {
-    setLesson(null);
+    if (initialData) {
+      setLesson(initialData);
+      return;
+    }
+    let cancelled = false;
     fetch(`/api/lesson/${conceptId}`)
       .then((r) => r.json())
-      .then(setLesson);
-  }, [conceptId]);
+      .then((l) => {
+        if (!cancelled) setLesson(l);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [conceptId, initialData]);
 
   return (
     <div className="absolute inset-0 flex items-center justify-center bg-black/40">

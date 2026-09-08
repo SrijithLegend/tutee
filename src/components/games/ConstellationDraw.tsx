@@ -244,15 +244,23 @@ function ConstellationScene({
 interface ConstellationDrawProps {
   conceptId: string;
   onComplete: (graph: Graph) => void;
+  /** Fetched ahead of mount (e.g. during the star's zoom-in) so the scene opens already populated. */
+  initialQuestion?: QuestionView | null;
 }
 
-export default function ConstellationDraw({ conceptId, onComplete }: ConstellationDrawProps) {
-  const [question, setQuestion] = useState<QuestionView | null>(null);
-  const [questionStart, setQuestionStart] = useState(0);
+export default function ConstellationDraw({ conceptId, onComplete, initialQuestion = null }: ConstellationDrawProps) {
+  const [question, setQuestion] = useState<QuestionView | null>(initialQuestion);
+  const [questionStart, setQuestionStart] = useState(initialQuestion ? Date.now() : 0);
   const [result, setResult] = useState<AnswerResponse | null>(null);
   const resolveRef = useRef<ResolveFn | null>(null);
 
   useEffect(() => {
+    if (initialQuestion) {
+      setQuestion(initialQuestion);
+      setQuestionStart(Date.now());
+      setResult(null);
+      return;
+    }
     fetch(`/api/answer?conceptId=${encodeURIComponent(conceptId)}`)
       .then((r) => r.json())
       .then((q: QuestionView) => {
@@ -260,7 +268,7 @@ export default function ConstellationDraw({ conceptId, onComplete }: Constellati
         setQuestionStart(Date.now());
         setResult(null);
       });
-  }, [conceptId]);
+  }, [conceptId, initialQuestion]);
 
   function selectOption(optionId: string) {
     if (!question) return;

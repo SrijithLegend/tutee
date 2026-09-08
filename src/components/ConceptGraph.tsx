@@ -148,6 +148,14 @@ function makeStarfield(
 
 const GALAXY_PALETTE = [0xffffff, 0xcfe0ff, 0xf5dfab, 0xffe9c2];
 
+/** Standard-normal sample (Box-Muller) — jitter drawn from this clusters near 0 with a soft tail,
+ * instead of the hard-edged band a uniform random spread produces, so arms read as sharp ribbons. */
+function gaussianJitter(): number {
+  const u = 1 - Math.random();
+  const v = Math.random();
+  return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
+}
+
 /** Thousands of small glowing points laid along logarithmic spiral arms — the dense Milky-Way
  * "dust" backdrop the concept stars sit inside, rather than a flat starfield behind them. */
 function makeGalaxySpiralArms(
@@ -166,11 +174,15 @@ function makeGalaxySpiralArms(
     const arm = Math.floor(Math.random() * armCount);
     const t = Math.random();
     const radius = 12 + t * radiusMax;
-    const angle = t * Math.PI * 3.4 + (arm * Math.PI * 2) / armCount;
-    const scatter = 3 + t * 14; // arms fan out and loosen with distance from the core
-    const rx = radius * Math.cos(angle) + (Math.random() - 0.5) * scatter;
-    const rz = radius * Math.sin(angle) + (Math.random() - 0.5) * scatter;
-    const ry = (Math.random() - 0.5) * (5 + t * 4);
+    const angle = t * Math.PI * 5.2 + (arm * Math.PI * 2) / armCount; // tighter winding, more coiled
+    const tangent = angle + Math.PI / 2;
+    // Jitter mostly across the arm's width (perpendicular to its direction of travel), with a
+    // touch of along-arm spread — narrow near the core, only loosening a little toward the rim.
+    const across = gaussianJitter() * (1.1 + t * 3.5);
+    const along = gaussianJitter() * (0.6 + t * 1.5);
+    const rx = radius * Math.cos(angle) + Math.cos(tangent) * across + Math.cos(angle) * along;
+    const rz = radius * Math.sin(angle) + Math.sin(tangent) * across + Math.sin(angle) * along;
+    const ry = gaussianJitter() * (1.4 + t * 1.2);
     positions[i * 3] = rx;
     positions[i * 3 + 1] = ry;
     positions[i * 3 + 2] = rz;

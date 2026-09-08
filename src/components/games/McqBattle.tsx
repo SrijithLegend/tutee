@@ -26,21 +26,28 @@ interface AnswerResponse {
 interface McqBattleProps {
   conceptId: string;
   onComplete: (graph: Graph) => void;
+  /** Fetched ahead of mount (e.g. during the star's zoom-in) so the panel opens already populated. */
+  initialQuestion?: QuestionView | null;
 }
 
-export default function McqBattle({ conceptId, onComplete }: McqBattleProps) {
-  const [question, setQuestion] = useState<QuestionView | null>(null);
-  const [questionStart, setQuestionStart] = useState(0);
+export default function McqBattle({ conceptId, onComplete, initialQuestion = null }: McqBattleProps) {
+  const [question, setQuestion] = useState<QuestionView | null>(initialQuestion);
+  const [questionStart, setQuestionStart] = useState(initialQuestion ? Date.now() : 0);
   const [result, setResult] = useState<AnswerResponse | null>(null);
 
   useEffect(() => {
+    if (initialQuestion) {
+      setQuestion(initialQuestion);
+      setQuestionStart(Date.now());
+      return;
+    }
     fetch(`/api/answer?conceptId=${encodeURIComponent(conceptId)}`)
       .then((r) => r.json())
       .then((q: QuestionView) => {
         setQuestion(q);
         setQuestionStart(Date.now());
       });
-  }, [conceptId]);
+  }, [conceptId, initialQuestion]);
 
   function selectOption(optionId: string) {
     if (!question) return;
