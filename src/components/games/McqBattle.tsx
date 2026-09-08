@@ -16,6 +16,10 @@ interface Graph {
 interface AnswerResponse {
   correct: boolean;
   misconceptionId: string | null;
+  misconceptionName: string | null;
+  microExplanation: string | null;
+  strikeCount: number | null;
+  injected: boolean;
   graph: Graph;
 }
 
@@ -80,9 +84,23 @@ export default function McqBattle({ conceptId, onComplete }: McqBattleProps) {
           </>
         ) : (
           <>
-            <p className={`mb-4 text-lg font-medium ${result.correct ? "text-[#2E8B6F]" : "text-[#E09A32]"}`}>
+            <p className={`mb-2 text-lg font-medium ${result.correct ? "text-[#2E8B6F]" : "text-[#E09A32]"}`}>
               {result.correct ? "Correct!" : "Not quite."}
             </p>
+            {!result.correct && result.misconceptionName && (
+              <div className="mb-4 rounded border border-[#E09A32]/30 bg-[#E09A32]/10 p-3">
+                <p className="text-sm font-medium text-[#E09A32]">{result.misconceptionName}</p>
+                {result.microExplanation && <p className="mt-1 text-sm text-white/70">{result.microExplanation}</p>}
+                {result.strikeCount != null && (
+                  <p className="mt-2 text-xs text-white/40">Strike {result.strikeCount} of 3</p>
+                )}
+              </div>
+            )}
+            {result.injected && (
+              <p className="mb-4 text-sm text-[#2E8B6F]">
+                A remedial node has been added to your graph to patch this gap.
+              </p>
+            )}
             <button
               onClick={close}
               className="w-full rounded border border-white/10 px-4 py-2 text-center transition-colors hover:border-white/30 hover:bg-white/5"

@@ -43,7 +43,15 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "optionId is required for an mcq question" }, { status: 400 });
     }
     const result = recordAnswer(DEMO_USER_ID, question, body.optionId, body.responseMs);
-    return NextResponse.json({ ...result, graph: getUserGraph(DEMO_USER_ID) });
+    const misconception = result.misconceptionId
+      ? getContent().misconceptions.find((m) => m.id === result.misconceptionId)
+      : undefined;
+    return NextResponse.json({
+      ...result,
+      misconceptionName: misconception?.name ?? null,
+      microExplanation: misconception?.microExplanation ?? null,
+      graph: getUserGraph(DEMO_USER_ID),
+    });
   }
 
   if (!Array.isArray(body.order)) {
