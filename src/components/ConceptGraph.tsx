@@ -8,7 +8,7 @@ import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
 import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass.js";
 import type { GraphEdge, GraphNode } from "@/lib/path";
 
-const STATE_COLOR: Record<GraphNode["state"], number> = {
+export const STATE_COLOR: Record<GraphNode["state"], number> = {
   locked: 0x9aa3b2,
   learn: 0x1a2846,
   practice: 0xe09a32,
@@ -18,9 +18,9 @@ const STATE_COLOR: Record<GraphNode["state"], number> = {
 const EDGE_COLOR_LIT = 0x2e8b6f;
 const EDGE_COLOR_DIM = 0x3a4150;
 
-const PLANET_COLOR_UNTOUCHED = 0x5b6478;
-const PLANET_COLOR_HIT = 0xe09a32;
-const PLANET_COLOR_CRITICAL = 0xff5a3c;
+export const PLANET_COLOR_UNTOUCHED = 0x5b6478;
+export const PLANET_COLOR_HIT = 0xe09a32;
+export const PLANET_COLOR_CRITICAL = 0xff5a3c;
 
 const RETRIEVABILITY_EASE_PER_SEC = 2.2; // higher = faster fade/re-glow response
 
@@ -69,7 +69,7 @@ function computeGalaxyPositions(nodes: GraphNode[], edges: GraphEdge[]): Map<str
   return positions;
 }
 
-function makeLabelSprite(text: string): THREE.Sprite {
+export function makeLabelSprite(text: string): THREE.Sprite {
   const canvas = document.createElement("canvas");
   const ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
   const fontSize = 40;
@@ -94,7 +94,7 @@ function makeLabelSprite(text: string): THREE.Sprite {
 }
 
 /** A soft round radial-gradient sprite, so background stars render as glowing points instead of hard squares. */
-function makeGlowTexture(): THREE.Texture {
+export function makeGlowTexture(): THREE.Texture {
   const size = 64;
   const canvas = document.createElement("canvas");
   canvas.width = size;
@@ -158,7 +158,7 @@ interface StarEntry {
   }[];
 }
 
-function planetColorFor(hits: number): number {
+export function planetColorFor(hits: number): number {
   return hits >= 3 ? PLANET_COLOR_CRITICAL : hits >= 1 ? PLANET_COLOR_HIT : PLANET_COLOR_UNTOUCHED;
 }
 

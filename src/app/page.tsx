@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import ConceptGraph from "@/components/ConceptGraph";
 import DevBar from "@/components/DevBar";
+import ConstellationDraw from "@/components/games/ConstellationDraw";
 import DiagnosticQuiz from "@/components/games/DiagnosticQuiz";
 import McqBattle from "@/components/games/McqBattle";
 import RecallRush from "@/components/games/RecallRush";
@@ -15,6 +16,10 @@ interface Graph {
   nodes: GraphNode[];
   edges: GraphEdge[];
 }
+
+// Spatial 3D game mode (Constellation Draw) vs. the safe HTML-modal fallback (McqBattle).
+// Flip in .env.local; existing modal components are never removed.
+const USE_SPATIAL_GAMES = process.env.NEXT_PUBLIC_SPATIAL === "1";
 
 export default function Home() {
   const [graph, setGraph] = useState<Graph | null>(null);
@@ -121,7 +126,12 @@ export default function Home() {
               !recallRushConceptIds &&
               !lessonConceptId &&
               !teachBackConceptId &&
-              battleConceptId && <McqBattle conceptId={battleConceptId} onComplete={closeBattle} />}
+              battleConceptId &&
+              (USE_SPATIAL_GAMES ? (
+                <ConstellationDraw conceptId={battleConceptId} onComplete={closeBattle} />
+              ) : (
+                <McqBattle conceptId={battleConceptId} onComplete={closeBattle} />
+              ))}
           </>
         ) : (
           <p className="p-6 text-muted">Loading graph…</p>

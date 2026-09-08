@@ -277,7 +277,19 @@
 
     { "id": "mc-li-no-flip", "conceptId": "linear-inequalities", "name": "Forgets to flip the inequality sign when dividing by a negative", "microExplanation": "Dividing both sides by a negative number reverses which side is bigger — the inequality sign must flip to stay true.", "remedialConceptId": "balance-both-sides-recap" },
     { "id": "mc-li-boundary-error", "conceptId": "linear-inequalities", "name": "Changes a strict inequality to a non-strict one, or vice versa", "microExplanation": "The original inequality was strict, with no 'or equal to' — the solution must stay strict too.", "remedialConceptId": null },
-    { "id": "mc-li-arithmetic-slip", "conceptId": "linear-inequalities", "name": "Makes an arithmetic slip on the constant term", "microExplanation": "Double-check the basic subtraction step before worrying about the inequality direction — an early arithmetic slip carries through the rest of the solution.", "remedialConceptId": null }
+    { "id": "mc-li-arithmetic-slip", "conceptId": "linear-inequalities", "name": "Makes an arithmetic slip on the constant term", "microExplanation": "Double-check the basic subtraction step before worrying about the inequality direction — an early arithmetic slip carries through the rest of the solution.", "remedialConceptId": null },
+
+    { "id": "mc-drc-partial", "conceptId": "distributive-recap", "name": "Distributes to only the first term", "microExplanation": "The outside number multiplies EVERY term inside the parentheses — skipping the second term leaves part of the expression undistributed.", "remedialConceptId": null },
+    { "id": "mc-drc-sign", "conceptId": "distributive-recap", "name": "Mishandles the sign when distributing a negative", "microExplanation": "A positive number distributed across a subtraction keeps that subtraction's sign on the resulting term — it doesn't flip to a plus.", "remedialConceptId": null },
+    { "id": "mc-drc-add", "conceptId": "distributive-recap", "name": "Adds the outside number instead of multiplying", "microExplanation": "The number next to parentheses multiplies what's inside — there's no operation symbol because multiplication is implied.", "remedialConceptId": null },
+
+    { "id": "mc-bbsr-wrong-op", "conceptId": "balance-both-sides-recap", "name": "Uses the wrong inverse operation", "microExplanation": "To undo addition you subtract, and to undo subtraction you add — using the same operation again doesn't cancel it out.", "remedialConceptId": null },
+    { "id": "mc-bbsr-one-side", "conceptId": "balance-both-sides-recap", "name": "Changes only one side of the equation", "microExplanation": "An equation is a balance — whatever you do to isolate x must happen to both sides, not just the side x is on.", "remedialConceptId": null },
+    { "id": "mc-bbsr-sign", "conceptId": "balance-both-sides-recap", "name": "Drops the sign when isolating the variable", "microExplanation": "The sign of the result carries through from the operation — dropping it silently changes the value.", "remedialConceptId": null },
+
+    { "id": "mc-slr-invert", "conceptId": "slope-recap", "name": "Uses run over rise instead of rise over run", "microExplanation": "Slope is rise OVER run — vertical change first, then horizontal. Flipping the fraction sends you in the wrong direction.", "remedialConceptId": null },
+    { "id": "mc-slr-sign", "conceptId": "slope-recap", "name": "Ignores the sign of a negative slope", "microExplanation": "A negative slope means the line goes DOWN as x increases — dropping the negative sign sends the second point the wrong way.", "remedialConceptId": null },
+    { "id": "mc-slr-swap", "conceptId": "slope-recap", "name": "Plots the y-intercept on the wrong axis", "microExplanation": "In y = mx + b, b is a y-value — the point (0, b), not (b, 0). It belongs on the vertical axis.", "remedialConceptId": null }
   ],
 
   "questions": [
@@ -469,6 +481,63 @@
       { "id": "b", "text": "x > -4", "correct": false, "misconceptionId": "mc-li-no-flip" },
       { "id": "c", "text": "x ≤ -4", "correct": false, "misconceptionId": "mc-li-boundary-error" },
       { "id": "d", "text": "x < -4.5", "correct": false, "misconceptionId": "mc-li-arithmetic-slip" }
+    ]},
+
+    { "id": "q-drc-001", "conceptId": "distributive-recap", "gameType": "mcq", "difficulty": 1, "prompt": "Expand: 2(x - 3)", "options": [
+      { "id": "a", "text": "2x - 6", "correct": true, "misconceptionId": null },
+      { "id": "b", "text": "2x - 3", "correct": false, "misconceptionId": "mc-drc-partial" },
+      { "id": "c", "text": "2x + 6", "correct": false, "misconceptionId": "mc-drc-sign" },
+      { "id": "d", "text": "2x + 2 - 3", "correct": false, "misconceptionId": "mc-drc-add" }
+    ]},
+    { "id": "q-drc-002", "conceptId": "distributive-recap", "gameType": "mcq", "difficulty": 1, "prompt": "Expand: 3(x - 5)", "options": [
+      { "id": "a", "text": "3x - 15", "correct": true, "misconceptionId": null },
+      { "id": "b", "text": "3x - 5", "correct": false, "misconceptionId": "mc-drc-partial" },
+      { "id": "c", "text": "3x + 15", "correct": false, "misconceptionId": "mc-drc-sign" },
+      { "id": "d", "text": "3x + 3 - 5", "correct": false, "misconceptionId": "mc-drc-add" }
+    ]},
+    { "id": "q-drc-003", "conceptId": "distributive-recap", "gameType": "mcq", "difficulty": 1, "prompt": "Expand: 4(x - 2)", "options": [
+      { "id": "a", "text": "4x - 8", "correct": true, "misconceptionId": null },
+      { "id": "b", "text": "4x - 2", "correct": false, "misconceptionId": "mc-drc-partial" },
+      { "id": "c", "text": "4x + 8", "correct": false, "misconceptionId": "mc-drc-sign" },
+      { "id": "d", "text": "4x + 4 - 2", "correct": false, "misconceptionId": "mc-drc-add" }
+    ]},
+
+    { "id": "q-bbsr-001", "conceptId": "balance-both-sides-recap", "gameType": "mcq", "difficulty": 1, "prompt": "Solve: x + 5 = 12", "options": [
+      { "id": "a", "text": "x = 7", "correct": true, "misconceptionId": null },
+      { "id": "b", "text": "x = 17", "correct": false, "misconceptionId": "mc-bbsr-wrong-op" },
+      { "id": "c", "text": "x = 12", "correct": false, "misconceptionId": "mc-bbsr-one-side" },
+      { "id": "d", "text": "x = -7", "correct": false, "misconceptionId": "mc-bbsr-sign" }
+    ]},
+    { "id": "q-bbsr-002", "conceptId": "balance-both-sides-recap", "gameType": "mcq", "difficulty": 1, "prompt": "Solve: x + 8 = 15", "options": [
+      { "id": "a", "text": "x = 7", "correct": true, "misconceptionId": null },
+      { "id": "b", "text": "x = 23", "correct": false, "misconceptionId": "mc-bbsr-wrong-op" },
+      { "id": "c", "text": "x = 15", "correct": false, "misconceptionId": "mc-bbsr-one-side" },
+      { "id": "d", "text": "x = -7", "correct": false, "misconceptionId": "mc-bbsr-sign" }
+    ]},
+    { "id": "q-bbsr-003", "conceptId": "balance-both-sides-recap", "gameType": "mcq", "difficulty": 1, "prompt": "Solve: x - 6 = 9", "options": [
+      { "id": "a", "text": "x = 15", "correct": true, "misconceptionId": null },
+      { "id": "b", "text": "x = 3", "correct": false, "misconceptionId": "mc-bbsr-wrong-op" },
+      { "id": "c", "text": "x = 9", "correct": false, "misconceptionId": "mc-bbsr-one-side" },
+      { "id": "d", "text": "x = -15", "correct": false, "misconceptionId": "mc-bbsr-sign" }
+    ]},
+
+    { "id": "q-slr-001", "conceptId": "slope-recap", "gameType": "mcq", "difficulty": 1, "prompt": "For the line y = -2x + 4, which is the correct starting point and direction to plot it?", "options": [
+      { "id": "a", "text": "Start at (0, 4); go down 2, right 1", "correct": true, "misconceptionId": null },
+      { "id": "b", "text": "Start at (0, 4); go right 2, down 1", "correct": false, "misconceptionId": "mc-slr-invert" },
+      { "id": "c", "text": "Start at (0, 4); go up 2, right 1", "correct": false, "misconceptionId": "mc-slr-sign" },
+      { "id": "d", "text": "Start at (4, 0); go down 2, right 1", "correct": false, "misconceptionId": "mc-slr-swap" }
+    ]},
+    { "id": "q-slr-002", "conceptId": "slope-recap", "gameType": "mcq", "difficulty": 1, "prompt": "For the line y = -3x + 6, which is the correct starting point and direction to plot it?", "options": [
+      { "id": "a", "text": "Start at (0, 6); go down 3, right 1", "correct": true, "misconceptionId": null },
+      { "id": "b", "text": "Start at (0, 6); go right 3, down 1", "correct": false, "misconceptionId": "mc-slr-invert" },
+      { "id": "c", "text": "Start at (0, 6); go up 3, right 1", "correct": false, "misconceptionId": "mc-slr-sign" },
+      { "id": "d", "text": "Start at (6, 0); go down 3, right 1", "correct": false, "misconceptionId": "mc-slr-swap" }
+    ]},
+    { "id": "q-slr-003", "conceptId": "slope-recap", "gameType": "mcq", "difficulty": 1, "prompt": "For the line y = -x + 5, which is the correct starting point and direction to plot it?", "options": [
+      { "id": "a", "text": "Start at (0, 5); go down 1, right 1", "correct": true, "misconceptionId": null },
+      { "id": "b", "text": "Start at (0, 5); go right 1, down 1", "correct": false, "misconceptionId": "mc-slr-invert" },
+      { "id": "c", "text": "Start at (0, 5); go up 1, right 1", "correct": false, "misconceptionId": "mc-slr-sign" },
+      { "id": "d", "text": "Start at (5, 0); go down 1, right 1", "correct": false, "misconceptionId": "mc-slr-swap" }
     ]},
 
     { "id": "q-solve-seq-001", "conceptId": "isolating-variables", "gameType": "sequence", "difficulty": 2, "prompt": "Order the steps to solve 2x + 3 = 11", "items": ["Subtract 3 from both sides", "Simplify to 2x = 8", "Divide both sides by 2", "x = 4"], "correctOrder": [0, 1, 2, 3] },
