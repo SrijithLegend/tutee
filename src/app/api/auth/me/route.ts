@@ -1,11 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { resetUser } from "@/lib/db";
-import { getUserGraph } from "@/lib/path";
 import { getUserId } from "@/lib/session";
 
-export async function POST(request: NextRequest) {
+export async function GET(request: NextRequest) {
   const userId = getUserId(request);
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  resetUser(userId);
-  return NextResponse.json(getUserGraph(userId));
+  return NextResponse.json({ username: userId });
 }

@@ -1,11 +1,13 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { advanceClock } from "@/lib/clock";
 import { getUserGraph } from "@/lib/path";
-import { DEMO_USER_ID } from "@/lib/user";
+import { getUserId } from "@/lib/session";
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
+  const userId = getUserId(request);
+  if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const body = (await request.json().catch(() => ({}))) as { days?: number };
   const days = body.days ?? 7;
-  advanceClock(DEMO_USER_ID, days);
-  return NextResponse.json(getUserGraph(DEMO_USER_ID));
+  advanceClock(userId, days);
+  return NextResponse.json(getUserGraph(userId));
 }

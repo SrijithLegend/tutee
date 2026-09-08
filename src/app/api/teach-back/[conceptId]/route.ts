@@ -1,10 +1,10 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { getContent } from "@/lib/content";
 import { recordTeachBack } from "@/lib/teachback";
 import { getUserGraph } from "@/lib/path";
-import { DEMO_USER_ID } from "@/lib/user";
+import { getUserId } from "@/lib/session";
 
-export async function GET(_request: Request, { params }: { params: { conceptId: string } }) {
+export async function GET(_request: NextRequest, { params }: { params: { conceptId: string } }) {
   const concept = getContent().concepts.find((c) => c.id === params.conceptId);
   if (!concept) {
     return NextResponse.json({ error: "Unknown concept" }, { status: 404 });
@@ -16,7 +16,10 @@ export async function GET(_request: Request, { params }: { params: { conceptId: 
   });
 }
 
-export async function POST(request: Request, { params }: { params: { conceptId: string } }) {
+export async function POST(request: NextRequest, { params }: { params: { conceptId: string } }) {
+  const userId = getUserId(request);
+  if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
   const concept = getContent().concepts.find((c) => c.id === params.conceptId);
   if (!concept) {
     return NextResponse.json({ error: "Unknown concept" }, { status: 404 });
@@ -27,6 +30,6 @@ export async function POST(request: Request, { params }: { params: { conceptId: 
     return NextResponse.json({ error: "explanation is required" }, { status: 400 });
   }
 
-  const result = recordTeachBack(DEMO_USER_ID, concept.id, body.explanation);
-  return NextResponse.json({ ...result, graph: getUserGraph(DEMO_USER_ID) });
+  const result = recordTeachBack(userId, concept.id, body.explanation);
+  return NextResponse.json({ ...result, graph: getUserGraph(userId) });
 }

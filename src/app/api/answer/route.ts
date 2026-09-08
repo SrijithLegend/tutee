@@ -1,11 +1,14 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { getContent } from "@/lib/content";
 import { recordAnswer, recordSequenceAnswer, selectQuestion } from "@/lib/diagnosis";
 import { getConceptStatus, getUserGraph } from "@/lib/path";
 import { explainChallenge } from "@/lib/scheduler";
-import { DEMO_USER_ID } from "@/lib/user";
+import { getUserId } from "@/lib/session";
 
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
+  const userId = getUserId(request);
+  if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
   const conceptId = new URL(request.url).searchParams.get("conceptId");
   if (!conceptId) {
     return NextResponse.json({ error: "conceptId query param is required" }, { status: 400 });
@@ -16,13 +19,16 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Unknown concept" }, { status: 404 });
   }
 
-  const question = selectQuestion(DEMO_USER_ID, conceptId);
-  const status = getConceptStatus(DEMO_USER_ID, conceptId);
+  const question = selectQuestion(userId, conceptId);
+  const status = getConceptStatus(userId, conceptId);
   const reason = explainChallenge(conceptId, concept.name, status.mastery, status.retrievability).reason;
   return NextResponse.json({ ...question, reason });
 }
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
+  const userId = getUserId(request);
+  if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
   const body = (await request.json()) as {
     questionId?: string;
     optionId?: string;
@@ -42,7 +48,7 @@ export async function POST(request: Request) {
     if (!body.optionId) {
       return NextResponse.json({ error: "optionId is required for an mcq question" }, { status: 400 });
     }
-    const result = recordAnswer(DEMO_USER_ID, question, body.optionId, body.responseMs);
+    const result = recordAnswer(userId, question, body.optionId, body.responseMs);
     const misconception = result.misconceptionId
       ? getContent().misconceptions.find((m) => m.id === result.misconceptionId)
       : undefined;
@@ -50,19 +56,19 @@ export async function POST(request: Request) {
       ...result,
       misconceptionName: misconception?.name ?? null,
       microExplanation: misconception?.microExplanation ?? null,
-      graph: getUserGraph(DEMO_USER_ID),
+      graph: getUserGraph(userId),
     });
   }
 
   if (!Array.isArray(body.order)) {
     return NextResponse.json({ error: "order is required for a sequence question" }, { status: 400 });
   }
-  const result = recordSequenceAnswer(DEMO_USER_ID, question, body.order, body.responseMs);
+  const result = recordSequenceAnswer(userId, question, body.order, body.responseMs);
   return NextResponse.json({
     ...result,
     misconceptionId: null,
     strikeCount: null,
     injected: false,
-    graph: getUserGraph(DEMO_USER_ID),
+    graph: getUserGraph(userId),
   });
 }

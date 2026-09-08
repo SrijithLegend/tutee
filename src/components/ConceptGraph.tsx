@@ -22,6 +22,10 @@ export const PLANET_COLOR_UNTOUCHED = 0x5b6478;
 export const PLANET_COLOR_HIT = 0xe09a32;
 export const PLANET_COLOR_CRITICAL = 0xff5a3c;
 
+const ROGUE_PLANET_ID = "__rogue__";
+const ROGUE_DIM_COLOR = 0x3a3550;
+const ROGUE_BRIGHT_COLOR = 0xf3d98b;
+
 const RETRIEVABILITY_EASE_PER_SEC = 2.2; // higher = faster fade/re-glow response
 
 /** Stable pseudo-random in [0,1) from a string id, so layout jitter is deterministic across renders. */
@@ -162,13 +166,36 @@ export function planetColorFor(hits: number): number {
   return hits >= 3 ? PLANET_COLOR_CRITICAL : hits >= 1 ? PLANET_COLOR_HIT : PLANET_COLOR_UNTOUCHED;
 }
 
+export interface PulseEdge {
+  source: string;
+  target: string;
+  nonce: number;
+}
+
 interface ConceptGraphProps {
   nodes: GraphNode[];
   edges: GraphEdge[];
   onNodeClick?: (node: GraphNode) => void;
+  /** Decay Storm: while set, the camera flies to and holds on this concept's star and the rest
+   * of the galaxy visibly cools (dimmer bloom, desaturated stars). Null/undefined = normal. */
+  stormConceptId?: string | null;
+  /** Decay Storm: bump the nonce to fire a travelling light pulse along one prerequisite edge. */
+  pulseEdge?: PulseEdge | null;
+  /** Teach-Back: while set, this concept's star grows an extra dim "rogue planet" (the protégé)
+   * that brightens as rogueBrightness rises from 0 (just arrived, barely lit) to 1 (it gets it). */
+  rogueConceptId?: string | null;
+  rogueBrightness?: number;
 }
 
-export default function ConceptGraph({ nodes, edges, onNodeClick }: ConceptGraphProps) {
+export default function ConceptGraph({
+  nodes,
+  edges,
+  onNodeClick,
+  stormConceptId = null,
+  pulseEdge = null,
+  rogueConceptId = null,
+  rogueBrightness = 0,
+}: ConceptGraphProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const nodesRef = useRef(nodes);
   nodesRef.current = nodes;
@@ -176,6 +203,14 @@ export default function ConceptGraph({ nodes, edges, onNodeClick }: ConceptGraph
   onNodeClickRef.current = onNodeClick;
   const edgesRef = useRef(edges);
   edgesRef.current = edges;
+  const stormConceptIdRef = useRef(stormConceptId);
+  stormConceptIdRef.current = stormConceptId;
+  const pulseEdgeRef = useRef(pulseEdge);
+  pulseEdgeRef.current = pulseEdge;
+  const rogueConceptIdRef = useRef(rogueConceptId);
+  rogueConceptIdRef.current = rogueConceptId;
+  const rogueBrightnessRef = useRef(rogueBrightness);
+  rogueBrightnessRef.current = rogueBrightness;
 
   // One-time scene setup; node/edge *data* changes are read live from the refs in the animation loop.
   useEffect(() => {
@@ -230,6 +265,14 @@ export default function ConceptGraph({ nodes, edges, onNodeClick }: ConceptGraph
     // animation loop via mesh.scale, so this never needs to be recreated on rebuild.
     const unitStarGeometry = new THREE.SphereGeometry(1, 24, 24);
     const unitPlanetGeometry = new THREE.SphereGeometry(1, 12, 12);
+    const unitPulseGeometry = new THREE.SphereGeometry(1, 10, 10);
+
+    // Decay Storm: travelling light pulses fired along an edge; each owns its own fading material.
+    const PULSE_SECONDS = 0.8;
+    const pulses: { mesh: THREE.Mesh; material: THREE.MeshBasicMaterial; from: THREE.Vector3; to: THREE.Vector3; t: number }[] = [];
+    let lastPulseNonce = -1;
+    let stormDim = 0; // 0 = normal galaxy, 1 = fully cooled/dimmed by an active storm
+    const STORM_COLD = new THREE.Color(0x232a3a);
 
     function disposeStars() {
       for (const s of stars.values()) {
@@ -284,7 +327,16 @@ export default function ConceptGraph({ nodes, edges, onNodeClick }: ConceptGraph
 
         const planets = n.planets.map((planet, i) => {
           const orbitRadius = starRadius + 6 + i * 4.5;
-          const pMat = new THREE.MeshStandardMaterial({ color: planetColorFor(planet.hits), roughness: 0.8 });
+          const planetColor = planetColorFor(planet.hits);
+          // A little emissive self-light so planets read as colored bodies rather than unlit black
+          // spheres — the scene's ambient/point lighting alone is too dim at this orbital distance.
+          const pMat = new THREE.MeshStandardMaterial({
+            color: planetColor,
+            emissive: planetColor,
+            emissiveIntensity: 0.35,
+            roughness: 0.7,
+            metalness: 0.05,
+          });
           const pMesh = new THREE.Mesh(unitPlanetGeometry, pMat);
           pMesh.scale.setScalar(0.9 + Math.min(planet.hits, 3) * 0.25);
           planetGroup.add(pMesh);
@@ -322,6 +374,29 @@ export default function ConceptGraph({ nodes, edges, onNodeClick }: ConceptGraph
           };
         });
 
+        // Teach-Back: the protégé rides in as one extra planet, distinct from the misconception
+        // ones, that starts dim and brightens live as rogueBrightnessRef climbs (see tick()).
+        if (rogueConceptIdRef.current === n.id) {
+          const rogueRadius = starRadius + 6 + planets.length * 4.5;
+          const rogueMat = new THREE.MeshStandardMaterial({
+            color: ROGUE_DIM_COLOR,
+            emissive: ROGUE_DIM_COLOR,
+            emissiveIntensity: 0.3,
+            roughness: 0.6,
+          });
+          const rogueMesh = new THREE.Mesh(unitPlanetGeometry, rogueMat);
+          rogueMesh.scale.setScalar(1.1);
+          planetGroup.add(rogueMesh);
+          planets.push({
+            id: ROGUE_PLANET_ID,
+            mesh: rogueMesh,
+            material: rogueMat,
+            radius: rogueRadius,
+            speed: 0.35,
+            angle: hash01(n.id + "rogue") * Math.PI * 2,
+          });
+        }
+
         stars.set(n.id, { conceptId: n.id, mesh, material, light, displayR: n.retrievability, planetGroup, planets });
       }
 
@@ -350,7 +425,9 @@ export default function ConceptGraph({ nodes, edges, onNodeClick }: ConceptGraph
           .sort()
           .join(",") +
         "|" +
-        edgeList.map((e) => `${e.source}>${e.target}:${e.unlocked}`).join(",")
+        edgeList.map((e) => `${e.source}>${e.target}:${e.unlocked}`).join(",") +
+        "|rogue:" +
+        (rogueConceptIdRef.current ?? "")
       );
     }
 
@@ -408,21 +485,34 @@ export default function ConceptGraph({ nodes, edges, onNodeClick }: ConceptGraph
       const sig = signatureOf(nodesRef.current, edgesRef.current);
       if (sig !== builtSignature) build(nodesRef.current, edgesRef.current);
 
+      const stormId = stormConceptIdRef.current;
+      stormDim += ((stormId ? 1 : 0) - stormDim) * Math.min(1, 2.5 * dt);
+      bloom.strength = 0.9 * (1 - 0.65 * stormDim);
+
       const latest = new Map(nodesRef.current.map((n) => [n.id, n]));
       for (const s of stars.values()) {
         const n = latest.get(s.conceptId);
         if (!n) continue;
         const target = n.retrievability;
         s.displayR += (target - s.displayR) * Math.min(1, RETRIEVABILITY_EASE_PER_SEC * dt);
-        s.material.emissiveIntensity = 0.08 + 0.95 * s.displayR;
-        s.light.intensity = 0.12 + 1.3 * s.displayR;
 
         // State/mastery can change (lesson learned, question answered) without the node SET
         // changing, so color and size are refreshed live here rather than only at build time.
         const stateColor = STATE_COLOR[n.state];
+        const isStormTarget = stormId === n.id;
+        const dimAmount = stormId && !isStormTarget ? stormDim : 0;
+        const displayColor = dimAmount > 0 ? new THREE.Color(stateColor).lerp(STORM_COLD, dimAmount * 0.7) : null;
         s.material.color.setHex(stateColor);
         s.material.emissive.setHex(stateColor);
         s.light.color.setHex(stateColor);
+        if (displayColor) {
+          s.material.color.copy(displayColor);
+          s.material.emissive.copy(displayColor);
+          s.light.color.copy(displayColor);
+        }
+        s.material.emissiveIntensity =
+          (0.08 + 0.95 * s.displayR) * (isStormTarget ? 1 + 0.6 * stormDim : 1 - 0.5 * dimAmount);
+        s.light.intensity = (0.12 + 1.3 * s.displayR) * (isStormTarget ? 1 + 0.6 * stormDim : 1 - 0.5 * dimAmount);
         s.mesh.scale.setScalar(3 + n.mastery * 3.2);
 
         const planetById = new Map(n.planets.map((p) => [p.id, p]));
@@ -430,15 +520,67 @@ export default function ConceptGraph({ nodes, edges, onNodeClick }: ConceptGraph
           p.angle += p.speed * dt;
           p.mesh.position.set(p.radius * Math.cos(p.angle), 0, p.radius * Math.sin(p.angle));
 
+          if (p.id === ROGUE_PLANET_ID) {
+            const brightness = Math.max(0, Math.min(1, rogueBrightnessRef.current));
+            const rogueColor = new THREE.Color(ROGUE_DIM_COLOR).lerp(new THREE.Color(ROGUE_BRIGHT_COLOR), brightness);
+            p.material.color.copy(rogueColor);
+            p.material.emissive.copy(rogueColor);
+            p.material.emissiveIntensity = 0.3 + 0.8 * brightness;
+            p.mesh.scale.setScalar(1.1 + 0.4 * brightness);
+            continue;
+          }
+
           const latestPlanet = planetById.get(p.id);
           if (latestPlanet) {
-            p.material.color.setHex(planetColorFor(latestPlanet.hits));
+            const planetColor = planetColorFor(latestPlanet.hits);
+            p.material.color.setHex(planetColor);
+            p.material.emissive.setHex(planetColor);
             p.mesh.scale.setScalar(0.9 + Math.min(latestPlanet.hits, 3) * 0.25);
           }
         }
       }
 
-      galaxyGroup.rotation.y += dt * 0.01;
+      // Decay Storm: fly the camera to and hold on the concept currently in play.
+      controls.enabled = !stormId;
+      if (stormId) {
+        const focusStar = stars.get(stormId);
+        if (focusStar) {
+          const focusPos = focusStar.mesh.position;
+          const desiredCamPos = new THREE.Vector3(focusPos.x + 18, focusPos.y + 14, focusPos.z + 18);
+          camera.position.lerp(desiredCamPos, Math.min(1, 1.5 * dt));
+          controls.target.lerp(focusPos, Math.min(1, 1.5 * dt));
+        }
+      }
+
+      // Decay Storm: spawn a travelling pulse when a new edge is signalled.
+      const pe = pulseEdgeRef.current;
+      if (pe && pe.nonce !== lastPulseNonce) {
+        lastPulseNonce = pe.nonce;
+        const from = stars.get(pe.source)?.mesh.position;
+        const to = stars.get(pe.target)?.mesh.position;
+        if (from && to) {
+          const material = new THREE.MeshBasicMaterial({ color: 0xbfe3ff, transparent: true, opacity: 1 });
+          const mesh = new THREE.Mesh(unitPulseGeometry, material);
+          mesh.scale.setScalar(1.6);
+          mesh.position.copy(from);
+          galaxyGroup.add(mesh);
+          pulses.push({ mesh, material, from: from.clone(), to: to.clone(), t: 0 });
+        }
+      }
+      for (let i = pulses.length - 1; i >= 0; i--) {
+        const p = pulses[i];
+        p.t += dt / PULSE_SECONDS;
+        if (p.t >= 1) {
+          galaxyGroup.remove(p.mesh);
+          p.material.dispose();
+          pulses.splice(i, 1);
+          continue;
+        }
+        p.mesh.position.lerpVectors(p.from, p.to, p.t);
+        p.material.opacity = 1 - p.t;
+      }
+
+      galaxyGroup.rotation.y += dt * 0.01 * (1 - stormDim);
       controls.update();
       composer.render();
     }
@@ -450,8 +592,14 @@ export default function ConceptGraph({ nodes, edges, onNodeClick }: ConceptGraph
       renderer.domElement.removeEventListener("pointerdown", onPointerDown);
       renderer.domElement.removeEventListener("pointerup", onPointerUp);
       disposeStars();
+      for (const p of pulses) {
+        galaxyGroup.remove(p.mesh);
+        p.material.dispose();
+      }
+      pulses.length = 0;
       unitStarGeometry.dispose();
       unitPlanetGeometry.dispose();
+      unitPulseGeometry.dispose();
       glowTexture.dispose();
       farStars.geometry.dispose();
       (farStars.material as THREE.Material).dispose();

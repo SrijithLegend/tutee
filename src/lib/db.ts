@@ -54,6 +54,18 @@ db.exec(`
     user_id     TEXT PRIMARY KEY,
     offset_days INTEGER NOT NULL DEFAULT 0
   );
+
+  CREATE TABLE IF NOT EXISTS users (
+    username      TEXT PRIMARY KEY,
+    password_hash TEXT NOT NULL,
+    created_at    TEXT NOT NULL
+  );
+
+  CREATE TABLE IF NOT EXISTS sessions (
+    id         TEXT PRIMARY KEY,
+    user_id    TEXT NOT NULL,
+    created_at TEXT NOT NULL
+  );
 `);
 
 const USER_TABLES = ["fsrs_cards", "concept_progress", "attempts", "injected_nodes", "clock_offset"];

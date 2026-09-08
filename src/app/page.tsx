@@ -1,15 +1,19 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import ConceptGraph from "@/components/ConceptGraph";
 import DevBar from "@/components/DevBar";
 import ConstellationDraw from "@/components/games/ConstellationDraw";
+import DecayStorm from "@/components/games/DecayStorm";
 import DiagnosticQuiz from "@/components/games/DiagnosticQuiz";
 import McqBattle from "@/components/games/McqBattle";
 import RecallRush from "@/components/games/RecallRush";
 import LessonPanel from "@/components/LessonPanel";
 import TeachBack from "@/components/TeachBack";
+import TeachBackOrbit from "@/components/games/TeachBackOrbit";
 import { DECAY_THRESHOLD, RECALL_RUSH_MIN_DECAYED, explainRecallRush } from "@/lib/scheduler";
+import type { PulseEdge } from "@/components/ConceptGraph";
 import type { GraphEdge, GraphNode } from "@/lib/path";
 
 interface Graph {
@@ -22,12 +26,18 @@ interface Graph {
 const USE_SPATIAL_GAMES = process.env.NEXT_PUBLIC_SPATIAL === "1";
 
 export default function Home() {
+  const router = useRouter();
+  const [username, setUsername] = useState<string | null>(null);
   const [graph, setGraph] = useState<Graph | null>(null);
   const [lessonConceptId, setLessonConceptId] = useState<string | null>(null);
   const [teachBackConceptId, setTeachBackConceptId] = useState<string | null>(null);
+  const [teachBackBrightness, setTeachBackBrightness] = useState(0);
   const [battleConceptId, setBattleConceptId] = useState<string | null>(null);
   const [recallRushConceptIds, setRecallRushConceptIds] = useState<string[] | null>(null);
   const [recallRushDismissed, setRecallRushDismissed] = useState(false);
+  const [stormConceptId, setStormConceptId] = useState<string | null>(null);
+  const [pulseEdge, setPulseEdge] = useState<PulseEdge | null>(null);
+  const pulseNonceRef = useRef(0);
 
   function refetchGraph() {
     fetch("/api/graph")
@@ -35,7 +45,28 @@ export default function Home() {
       .then(setGraph);
   }
 
-  useEffect(refetchGraph, []);
+  useEffect(() => {
+    fetch("/api/auth/me")
+      .then((r) => {
+        if (!r.ok) throw new Error("unauthenticated");
+        return r.json();
+      })
+      .then((data: { username: string }) => {
+        setUsername(data.username);
+        refetchGraph();
+      })
+      .catch(() => router.push("/login"));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  function logOut() {
+    fetch("/api/auth/logout", { method: "POST" }).then(() => router.push("/login"));
+  }
+
+  // Teach-Back and Decay Storm both want to hold the galaxy camera on one concept; only one is
+  // ever active at a time (Teach-Back only opens right after a lesson closes), so they can share
+  // a single "which star is the camera locked onto" slot on ConceptGraph without conflicting.
+  const focusConceptId = teachBackConceptId ?? stormConceptId;
 
   const needsDiagnostic = graph != null && graph.nodes.every((n) => n.retrievability === 0);
 
@@ -83,6 +114,11 @@ export default function Home() {
     setRecallRushDismissed(true);
   }
 
+  function firePulse(edge: { source: string; target: string }) {
+    pulseNonceRef.current += 1;
+    setPulseEdge({ ...edge, nonce: pulseNonceRef.current });
+  }
+
   // A fresh decay event (e.g. Simulate 7 days) should be allowed to trigger Recall Rush again.
   function handleDevBarGraphUpdate(updatedGraph: Graph) {
     setRecallRushDismissed(false);
@@ -101,27 +137,63 @@ export default function Home() {
         <p className="hidden text-xs uppercase tracking-[0.2em] text-muted sm:block">
           Mastery decays &middot; so does the graph
         </p>
-        {graph && <DevBar onGraphUpdate={handleDevBarGraphUpdate} />}
+        <div className="flex items-center gap-4">
+          {username && (
+            <span className="text-xs uppercase tracking-[0.2em] text-muted">
+              {username} &middot; <button onClick={logOut} className="underline underline-offset-2">Log out</button>
+            </span>
+          )}
+          {graph && <DevBar onGraphUpdate={handleDevBarGraphUpdate} />}
+        </div>
       </header>
       <main className="relative flex-1">
         {graph ? (
           <>
-            <ConceptGraph nodes={graph.nodes} edges={graph.edges} onNodeClick={handleNodeClick} />
+            <ConceptGraph
+              nodes={graph.nodes}
+              edges={graph.edges}
+              onNodeClick={handleNodeClick}
+              stormConceptId={USE_SPATIAL_GAMES ? focusConceptId : null}
+              pulseEdge={USE_SPATIAL_GAMES ? pulseEdge : null}
+              rogueConceptId={USE_SPATIAL_GAMES ? teachBackConceptId : null}
+              rogueBrightness={teachBackBrightness}
+            />
             {needsDiagnostic && <DiagnosticQuiz onComplete={setGraph} />}
-            {!needsDiagnostic && recallRushConceptIds && (
-              <RecallRush
-                conceptIds={recallRushConceptIds}
-                reason={explainRecallRush(recallRushConceptIds).reason}
-                onGraphUpdate={setGraph}
-                onComplete={closeRecallRush}
-              />
-            )}
+            {!needsDiagnostic &&
+              recallRushConceptIds &&
+              (USE_SPATIAL_GAMES ? (
+                <DecayStorm
+                  conceptIds={recallRushConceptIds}
+                  reason={explainRecallRush(recallRushConceptIds).reason}
+                  onGraphUpdate={setGraph}
+                  onComplete={closeRecallRush}
+                  onFocusConcept={setStormConceptId}
+                  onPulse={firePulse}
+                />
+              ) : (
+                <RecallRush
+                  conceptIds={recallRushConceptIds}
+                  reason={explainRecallRush(recallRushConceptIds).reason}
+                  onGraphUpdate={setGraph}
+                  onComplete={closeRecallRush}
+                />
+              ))}
             {!needsDiagnostic && !recallRushConceptIds && lessonConceptId && (
               <LessonPanel conceptId={lessonConceptId} onClose={closeLesson} />
             )}
-            {!needsDiagnostic && !recallRushConceptIds && !lessonConceptId && teachBackConceptId && (
-              <TeachBack conceptId={teachBackConceptId} onComplete={closeTeachBack} />
-            )}
+            {!needsDiagnostic &&
+              !recallRushConceptIds &&
+              !lessonConceptId &&
+              teachBackConceptId &&
+              (USE_SPATIAL_GAMES ? (
+                <TeachBackOrbit
+                  conceptId={teachBackConceptId}
+                  onComplete={closeTeachBack}
+                  onBrightnessChange={setTeachBackBrightness}
+                />
+              ) : (
+                <TeachBack conceptId={teachBackConceptId} onComplete={closeTeachBack} />
+              ))}
             {!needsDiagnostic &&
               !recallRushConceptIds &&
               !lessonConceptId &&

@@ -64,6 +64,7 @@ function ConstellationScene({
     container.appendChild(renderer.domElement);
 
     scene.add(new THREE.AmbientLight(0x1b2536, 0.5));
+    scene.add(new THREE.HemisphereLight(0x8fa8ff, 0x1b2536, 0.7));
     const glowTexture = makeGlowTexture();
 
     const starColor = STATE_COLOR["practice"];
@@ -74,7 +75,7 @@ function ConstellationScene({
     });
     const star = new THREE.Mesh(new THREE.SphereGeometry(3, 24, 24), starMat);
     scene.add(star);
-    const starLight = new THREE.PointLight(starColor, 1.2, 80, 2);
+    const starLight = new THREE.PointLight(starColor, 2.5, 140, 1.4);
     scene.add(starLight);
 
     const options = question.options ?? [];
@@ -82,7 +83,15 @@ function ConstellationScene({
     const planets = options.map((opt, i) => {
       const angle = (i / options.length) * Math.PI * 2;
       const pos = new THREE.Vector3(orbitRadius * Math.cos(angle), 0, orbitRadius * Math.sin(angle));
-      const mat = new THREE.MeshStandardMaterial({ color: 0x5b6478, roughness: 0.8 });
+      // Emissive self-light so options read as visible colored planets instead of unlit black
+      // spheres at this distance from the star's point light.
+      const mat = new THREE.MeshStandardMaterial({
+        color: 0x8a93aa,
+        emissive: 0x3a3f52,
+        emissiveIntensity: 0.5,
+        roughness: 0.6,
+        metalness: 0.1,
+      });
       const mesh = new THREE.Mesh(new THREE.SphereGeometry(1.8, 16, 16), mat);
       mesh.position.copy(pos);
       mesh.userData.optionId = opt.id;
@@ -178,7 +187,10 @@ function ConstellationScene({
       lineMat.color.setHex(correct ? CORRECT_COLOR : WRONG_COLOR);
       starMat.emissiveIntensity = correct ? 1.4 : 0.6;
       if (planet) {
-        planet.material.color.setHex(correct ? CORRECT_COLOR : WRONG_COLOR);
+        const outcomeColor = correct ? CORRECT_COLOR : WRONG_COLOR;
+        planet.material.color.setHex(outcomeColor);
+        planet.material.emissive.setHex(outcomeColor);
+        planet.material.emissiveIntensity = 0.6;
         if (!correct) {
           const dir = planet.homePos.clone().normalize();
           planet.mesh.position.copy(dir.multiplyScalar(orbitRadius * 1.5));
