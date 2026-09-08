@@ -8,11 +8,12 @@ import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
 import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass.js";
 import type { GraphEdge, GraphNode } from "@/lib/path";
 
+// Locked = grey (not yet reachable), white = newly unlocked, red = in progress, blue = mastered.
 export const STATE_COLOR: Record<GraphNode["state"], number> = {
   locked: 0x9aa3b2,
-  learn: 0x1a2846,
-  practice: 0xe09a32,
-  mastered: 0x2e8b6f,
+  learn: 0xf4f6fb,
+  practice: 0xe0453a,
+  mastered: 0x3d7bf0,
 };
 
 const EDGE_COLOR_LIT = 0x2e8b6f;
@@ -145,12 +146,81 @@ function makeStarfield(
   return new THREE.Points(geometry, material);
 }
 
+const GALAXY_PALETTE = [0xffffff, 0xcfe0ff, 0xf5dfab, 0xffe9c2];
+
+/** Thousands of small glowing points laid along logarithmic spiral arms — the dense Milky-Way
+ * "dust" backdrop the concept stars sit inside, rather than a flat starfield behind them. */
+function makeGalaxySpiralArms(
+  count: number,
+  armCount: number,
+  radiusMax: number,
+  size: number,
+  opacity: number,
+  glowTexture: THREE.Texture
+): THREE.Points {
+  const positions = new Float32Array(count * 3);
+  const colors = new Float32Array(count * 3);
+  const palette = GALAXY_PALETTE.map((c) => new THREE.Color(c));
+
+  for (let i = 0; i < count; i++) {
+    const arm = Math.floor(Math.random() * armCount);
+    const t = Math.random();
+    const radius = 12 + t * radiusMax;
+    const angle = t * Math.PI * 3.4 + (arm * Math.PI * 2) / armCount;
+    const scatter = 3 + t * 14; // arms fan out and loosen with distance from the core
+    const rx = radius * Math.cos(angle) + (Math.random() - 0.5) * scatter;
+    const rz = radius * Math.sin(angle) + (Math.random() - 0.5) * scatter;
+    const ry = (Math.random() - 0.5) * (5 + t * 4);
+    positions[i * 3] = rx;
+    positions[i * 3 + 1] = ry;
+    positions[i * 3 + 2] = rz;
+
+    const base = palette[Math.floor(Math.random() * palette.length)];
+    const brightness = (1 - t * 0.5) * (0.6 + Math.random() * 0.4); // denser/brighter near the core
+    colors[i * 3] = base.r * brightness;
+    colors[i * 3 + 1] = base.g * brightness;
+    colors[i * 3 + 2] = base.b * brightness;
+  }
+
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
+  geometry.setAttribute("color", new THREE.BufferAttribute(colors, 3));
+  const material = new THREE.PointsMaterial({
+    size,
+    map: glowTexture,
+    vertexColors: true,
+    sizeAttenuation: true,
+    transparent: true,
+    opacity,
+    depthWrite: false,
+    blending: THREE.AdditiveBlending,
+  });
+  return new THREE.Points(geometry, material);
+}
+
+/** The bright glowing galactic core at the centre of the spiral. */
+function makeGalaxyCore(glowTexture: THREE.Texture): THREE.Sprite {
+  const material = new THREE.SpriteMaterial({
+    map: glowTexture,
+    color: 0xfff2d9,
+    transparent: true,
+    opacity: 0.95,
+    depthWrite: false,
+    blending: THREE.AdditiveBlending,
+  });
+  const sprite = new THREE.Sprite(material);
+  sprite.scale.set(48, 48, 1);
+  return sprite;
+}
+
 interface StarEntry {
   conceptId: string;
   mesh: THREE.Mesh;
   material: THREE.MeshStandardMaterial;
   light: THREE.PointLight;
   displayR: number; // eased retrievability, drives glow
+  prevState: GraphNode["state"];
+  unlockFlashT: number; // counts down 1 -> 0 after a locked->unlocked transition; drives the flourish
   planetGroup: THREE.Group;
   planets: {
     id: string;
@@ -257,6 +327,14 @@ export default function ConceptGraph({
 
     const galaxyGroup = new THREE.Group();
     scene.add(galaxyGroup);
+
+    // The dense Milky-Way spiral itself — fine dust plus a sparser layer of bigger bright
+    // clumps, and a glowing core — all riding inside galaxyGroup so they rotate with the stars.
+    const galaxyDust = makeGalaxySpiralArms(9000, 3, 230, 2.6, 0.85, glowTexture);
+    const galaxyClumps = makeGalaxySpiralArms(500, 3, 210, 7, 0.9, glowTexture);
+    const galaxyCore = makeGalaxyCore(glowTexture);
+    galaxyGroup.add(galaxyDust, galaxyClumps, galaxyCore);
+
     const edgeLines: { line: THREE.Line; edge: GraphEdge }[] = [];
     const stars = new Map<string, StarEntry>();
     let builtSignature = "";
@@ -397,7 +475,17 @@ export default function ConceptGraph({
           });
         }
 
-        stars.set(n.id, { conceptId: n.id, mesh, material, light, displayR: n.retrievability, planetGroup, planets });
+        stars.set(n.id, {
+          conceptId: n.id,
+          mesh,
+          material,
+          light,
+          displayR: n.retrievability,
+          prevState: n.state,
+          unlockFlashT: 0,
+          planetGroup,
+          planets,
+        });
       }
 
       for (const e of currentEdges) {
@@ -496,6 +584,13 @@ export default function ConceptGraph({
         const target = n.retrievability;
         s.displayR += (target - s.displayR) * Math.min(1, RETRIEVABILITY_EASE_PER_SEC * dt);
 
+        // A newly-unlocked solar system gets a brief bright flash + scale bounce so it visibly
+        // "switches on" instead of silently changing color on the next graph refetch.
+        if (s.prevState === "locked" && n.state !== "locked") s.unlockFlashT = 1;
+        s.prevState = n.state;
+        if (s.unlockFlashT > 0) s.unlockFlashT = Math.max(0, s.unlockFlashT - dt / 1.4);
+        const unlockFlash = Math.sin(s.unlockFlashT * Math.PI); // 0 -> 1 -> 0 over the flash window
+
         // State/mastery can change (lesson learned, question answered) without the node SET
         // changing, so color and size are refreshed live here rather than only at build time.
         const stateColor = STATE_COLOR[n.state];
@@ -511,9 +606,10 @@ export default function ConceptGraph({
           s.light.color.copy(displayColor);
         }
         s.material.emissiveIntensity =
-          (0.08 + 0.95 * s.displayR) * (isStormTarget ? 1 + 0.6 * stormDim : 1 - 0.5 * dimAmount);
-        s.light.intensity = (0.12 + 1.3 * s.displayR) * (isStormTarget ? 1 + 0.6 * stormDim : 1 - 0.5 * dimAmount);
-        s.mesh.scale.setScalar(3 + n.mastery * 3.2);
+          (0.08 + 0.95 * s.displayR) * (isStormTarget ? 1 + 0.6 * stormDim : 1 - 0.5 * dimAmount) + 1.6 * unlockFlash;
+        s.light.intensity =
+          (0.12 + 1.3 * s.displayR) * (isStormTarget ? 1 + 0.6 * stormDim : 1 - 0.5 * dimAmount) + 2.5 * unlockFlash;
+        s.mesh.scale.setScalar((3 + n.mastery * 3.2) * (1 + 0.6 * unlockFlash));
 
         const planetById = new Map(n.planets.map((p) => [p.id, p]));
         for (const p of s.planets) {
@@ -605,6 +701,11 @@ export default function ConceptGraph({
       (farStars.material as THREE.Material).dispose();
       nearStars.geometry.dispose();
       (nearStars.material as THREE.Material).dispose();
+      galaxyDust.geometry.dispose();
+      (galaxyDust.material as THREE.Material).dispose();
+      galaxyClumps.geometry.dispose();
+      (galaxyClumps.material as THREE.Material).dispose();
+      (galaxyCore.material as THREE.Material).dispose();
       controls.dispose();
       renderer.dispose();
       container.removeChild(renderer.domElement);
