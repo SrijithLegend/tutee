@@ -146,8 +146,8 @@ export type PublicQuestion =
   | { gameType: "mcq"; id: string; conceptId: string; prompt: string; options: { id: string; text: string }[] }
   | { gameType: "sequence"; id: string; conceptId: string; prompt: string; items: string[]; itemOriginalIndices: number[] };
 
-function shuffled(indices: number[]): number[] {
-  const copy = [...indices];
+function shuffled<T>(arr: T[]): T[] {
+  const copy = [...arr];
   for (let i = copy.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [copy[i], copy[j]] = [copy[j], copy[i]];
@@ -155,7 +155,12 @@ function shuffled(indices: number[]): number[] {
   return copy;
 }
 
-/** Strips the answer key before a question goes to the client. Sequence items are shuffled here — the content stores them in correct order. */
+/**
+ * Strips the answer key before a question goes to the client.
+ * Every authored MCQ question happens to put the correct option first, so display order is
+ * shuffled here — grading still keys off each option's own stable id, unaffected by position.
+ * Sequence items are shuffled the same way; content stores them in correct order.
+ */
 function toPublicQuestion(q: Question): PublicQuestion {
   if (q.gameType === "mcq") {
     return {
@@ -163,7 +168,7 @@ function toPublicQuestion(q: Question): PublicQuestion {
       id: q.id,
       conceptId: q.conceptId,
       prompt: q.prompt,
-      options: q.options.map((o) => ({ id: o.id, text: o.text })),
+      options: shuffled(q.options.map((o) => ({ id: o.id, text: o.text }))),
     };
   }
   const itemOriginalIndices = shuffled(q.items.map((_, i) => i));

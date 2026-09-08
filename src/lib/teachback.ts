@@ -1,7 +1,7 @@
 import { getContent } from "./content";
 import { gradeAnswer, Rating } from "./memory";
 
-/** Explaining a concept back reinforces retention (the protégé effect) — this exercise scores that explanation and reinforces its FSRS card accordingly. No LLM: matching is plain substring search against the concept's authored keyTerms. */
+/** Explaining a concept back reinforces retention (the protégé effect) — this exercise scores that explanation and reinforces its FSRS card accordingly. No LLM: matching is word-overlap against the concept's authored keyTerms, not exact-phrase search — a real explanation rarely repeats a phrase verbatim. */
 export interface TeachBackResult {
   matchedTerms: string[];
   totalTerms: number;
@@ -9,13 +9,23 @@ export interface TeachBackResult {
 }
 
 const STRONG_THRESHOLD = 0.6;
+/** A keyTerm counts as covered once at least this share of its own words show up in the explanation. */
+const TERM_WORD_OVERLAP = 0.5;
+
+function words(text: string): string[] {
+  return text.toLowerCase().match(/[a-z0-9]+/g) ?? [];
+}
 
 export function scoreExplanation(conceptId: string, explanation: string): TeachBackResult {
   const concept = getContent().concepts.find((c) => c.id === conceptId);
   if (!concept) throw new Error(`Unknown concept "${conceptId}"`);
 
-  const normalized = explanation.toLowerCase();
-  const matchedTerms = concept.lesson.keyTerms.filter((term) => normalized.includes(term.toLowerCase()));
+  const explanationWords = new Set(words(explanation));
+  const matchedTerms = concept.lesson.keyTerms.filter((term) => {
+    const termWords = words(term);
+    const hits = termWords.filter((w) => explanationWords.has(w)).length;
+    return hits / termWords.length >= TERM_WORD_OVERLAP;
+  });
   const totalTerms = concept.lesson.keyTerms.length;
   return { matchedTerms, totalTerms, strong: matchedTerms.length / totalTerms >= STRONG_THRESHOLD };
 }
