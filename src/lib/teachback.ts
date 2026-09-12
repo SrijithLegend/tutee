@@ -1,5 +1,6 @@
 import { getContent } from "./content";
 import { gradeAnswer, Rating } from "./memory";
+import { getUploadedConcept } from "./uploads";
 
 /** Explaining a concept back reinforces retention (the protégé effect) — this exercise scores that explanation and reinforces its FSRS card accordingly. No LLM: matching is word-overlap against the concept's authored keyTerms, not exact-phrase search — a real explanation rarely repeats a phrase verbatim. */
 export interface TeachBackResult {
@@ -16,8 +17,9 @@ function words(text: string): string[] {
   return text.toLowerCase().match(/[a-z0-9]+/g) ?? [];
 }
 
-export function scoreExplanation(conceptId: string, explanation: string): TeachBackResult {
-  const concept = getContent().concepts.find((c) => c.id === conceptId);
+export function scoreExplanation(conceptId: string, explanation: string, userId?: string): TeachBackResult {
+  const concept =
+    getContent().concepts.find((c) => c.id === conceptId) ?? (userId ? getUploadedConcept(userId, conceptId) : undefined);
   if (!concept) throw new Error(`Unknown concept "${conceptId}"`);
 
   const explanationWords = new Set(words(explanation));
@@ -32,7 +34,7 @@ export function scoreExplanation(conceptId: string, explanation: string): TeachB
 
 /** Records a teach-back attempt: reinforces the concept's FSRS card (Easy for a strong explanation, Good for a partial one), skips grading entirely if nothing relevant was said. */
 export function recordTeachBack(userId: string, conceptId: string, explanation: string): TeachBackResult {
-  const result = scoreExplanation(conceptId, explanation);
+  const result = scoreExplanation(conceptId, explanation, userId);
   if (result.matchedTerms.length === 0) return result;
   gradeAnswer(userId, conceptId, result.strong ? Rating.Easy : Rating.Good);
   return result;

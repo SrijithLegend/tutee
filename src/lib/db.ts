@@ -66,9 +66,36 @@ db.exec(`
     user_id    TEXT NOT NULL,
     created_at TEXT NOT NULL
   );
+
+  CREATE TABLE IF NOT EXISTS uploaded_concepts (
+    id              TEXT PRIMARY KEY,
+    user_id         TEXT NOT NULL,
+    name            TEXT NOT NULL,
+    explanation     TEXT NOT NULL,
+    worked_problem  TEXT NOT NULL,
+    worked_steps    TEXT NOT NULL,
+    key_terms       TEXT NOT NULL,
+    source_filename TEXT NOT NULL,
+    created_at      TEXT NOT NULL
+  );
+
+  CREATE TABLE IF NOT EXISTS uploaded_concept_edges (
+    user_id            TEXT NOT NULL,
+    concept_id         TEXT NOT NULL,
+    related_concept_id TEXT NOT NULL,
+    PRIMARY KEY (user_id, concept_id, related_concept_id)
+  );
 `);
 
-const USER_TABLES = ["fsrs_cards", "concept_progress", "attempts", "injected_nodes", "clock_offset"];
+const USER_TABLES = [
+  "fsrs_cards",
+  "concept_progress",
+  "attempts",
+  "injected_nodes",
+  "clock_offset",
+  "uploaded_concepts",
+  "uploaded_concept_edges",
+];
 
 /** Wipes a user's state back to zero across every user-state table. Content is never touched. */
 export function resetUser(userId: string): void {

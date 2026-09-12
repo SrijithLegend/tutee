@@ -12,6 +12,7 @@ import RecallRush from "@/components/games/RecallRush";
 import LessonPanel from "@/components/LessonPanel";
 import TeachBack from "@/components/TeachBack";
 import TeachBackOrbit from "@/components/games/TeachBackOrbit";
+import UploadPdf from "@/components/UploadPdf";
 import { DECAY_THRESHOLD, RECALL_RUSH_MIN_DECAYED, explainRecallRush } from "@/lib/scheduler";
 import type { PulseEdge } from "@/components/ConceptGraph";
 import type { Lesson } from "@/components/LessonPanel";
@@ -181,6 +182,7 @@ export default function Home() {
               {username} &middot; <button onClick={logOut} className="underline underline-offset-2">Log out</button>
             </span>
           )}
+          {graph && <UploadPdf onGraphUpdate={setGraph} />}
           {graph && <DevBar onGraphUpdate={handleDevBarGraphUpdate} />}
         </div>
       </header>

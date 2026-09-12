@@ -3,9 +3,13 @@ import { getContent } from "@/lib/content";
 import { recordTeachBack } from "@/lib/teachback";
 import { getUserGraph } from "@/lib/path";
 import { getUserId } from "@/lib/session";
+import { getUploadedConcept } from "@/lib/uploads";
 
-export async function GET(_request: NextRequest, { params }: { params: { conceptId: string } }) {
-  const concept = getContent().concepts.find((c) => c.id === params.conceptId);
+export async function GET(request: NextRequest, { params }: { params: { conceptId: string } }) {
+  const userId = getUserId(request);
+  const concept =
+    getContent().concepts.find((c) => c.id === params.conceptId) ??
+    (userId ? getUploadedConcept(userId, params.conceptId) : undefined);
   if (!concept) {
     return NextResponse.json({ error: "Unknown concept" }, { status: 404 });
   }
@@ -20,7 +24,8 @@ export async function POST(request: NextRequest, { params }: { params: { concept
   const userId = getUserId(request);
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const concept = getContent().concepts.find((c) => c.id === params.conceptId);
+  const concept =
+    getContent().concepts.find((c) => c.id === params.conceptId) ?? getUploadedConcept(userId, params.conceptId);
   if (!concept) {
     return NextResponse.json({ error: "Unknown concept" }, { status: 404 });
   }

@@ -2,6 +2,7 @@ import db from "./db";
 import { now } from "./clock";
 import { getContent } from "./content";
 import { getRetrievability, gradeAnswer, Rating } from "./memory";
+import { getUploadedConcepts, getUploadedConceptEdges } from "./uploads";
 import type { Concept } from "@/types/content";
 
 export type ConceptState = "locked" | "learn" | "practice" | "mastered";
@@ -116,9 +117,13 @@ export function getUserGraph(userId: string): UserGraph {
     if (misconception) remedialForFailingConcept.set(misconception.conceptId, row.concept_id);
   }
 
-  const visibleConcepts = content.concepts.filter(
-    (c) => !c.remedialOnly || injectedIds.has(c.id)
-  );
+  // Uploaded topics (from PDFs) join the same graph as ordinary concepts — never gated (they have
+  // no prerequisites), just optionally connected to something the user already learned.
+  const uploadedConcepts = getUploadedConcepts(userId);
+  const visibleConcepts = [
+    ...content.concepts.filter((c) => !c.remedialOnly || injectedIds.has(c.id)),
+    ...uploadedConcepts,
+  ];
   const visibleIds = new Set(visibleConcepts.map((c) => c.id));
 
   const masteryOf = (id: string) => progress.get(id)?.mastery ?? 0;
@@ -166,6 +171,12 @@ export function getUserGraph(userId: string): UserGraph {
     }
     if (routeThroughRemedial) {
       edges.push({ source: remedialId, target: c.id, unlocked: isUnlocked(c) });
+    }
+  }
+
+  for (const e of getUploadedConceptEdges(userId)) {
+    if (visibleIds.has(e.source) && visibleIds.has(e.target)) {
+      edges.push({ source: e.source, target: e.target, unlocked: true });
     }
   }
 
